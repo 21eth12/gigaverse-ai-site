@@ -1,1 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gigaverse • Docs AI Terminal</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg-scan"></div>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">G</div>
+        <div>
+          <div class="brand-title">gigaverse</div>
+          <div class="brand-sub">Docs AI Terminal</div>
+        </div>
+      </div>
 
+      <div class="topbar-right">
+        <button id="uiModeBtn" class="chip">Gigaverse UI Mode</button>
+        <div id="docsStatus" class="chip muted">Loading docs…</div>
+        <div class="chip kbd">Ctrl / Cmd + K</div>
+      </div>
+    </header>
+
+    <main class="main">
+      <aside class="sidebar">
+        <div class="side-title">WORLD</div>
+
+        <button class="nav-btn active" data-view="chat">AI Chat</button>
+        <button class="nav-btn" data-view="sources">Sources</button>
+        <button class="nav-btn" data-view="about">About</button>
+
+        <div class="panel">
+          <div class="panel-title">Offline AI</div>
+          <div class="panel-body">
+            Answers come from your local docs index.<br/>
+            Update <span class="pill">docs_index.json</span> to teach it more.
+            <div class="panel-foot">Powered by local docs • no server</div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="content">
+        <div class="content-header">
+          <div class="content-title">~ Docs AI</div>
+        </div>
+
+        <!-- CHAT VIEW -->
+        <div id="view-chat" class="view">
+          <div class="terminal">
+            <div class="msg system">
+              <div class="msg-meta">GIGUS • system</div>
+              <div class="msg-box">
+                Ask me anything about the game. I’ll answer using the docs I have, and I’ll cite sources.
+              </div>
+            </div>
+
+            <div id="chatLog" class="chatlog"></div>
+          </div>
+
+          <div class="composer">
+            <input id="chatInput" class="input" placeholder="Ask about pots, chests, factions, creators…" />
+            <button id="askBtn" class="btn">Ask</button>
+          </div>
+
+          <div class="hint">
+            Tip: If your docs have sections like “Pots - Blue”, include those as <span class="pill">title</span> and <span class="pill">section</span> in the JSON.
+          </div>
+        </div>
+
+        <!-- SOURCES VIEW -->
+        <div id="view-sources" class="view hidden">
+          <div class="card">
+            <div class="card-title">Sources (Docs Index)</div>
+            <div class="card-sub">These are the chunks your AI searches through.</div>
+            <pre id="sourcesPre" class="pre"></pre>
+          </div>
+        </div>
+
+        <!-- ABOUT VIEW -->
+        <div id="view-about" class="view hidden">
+          <div class="card">
+            <div class="card-title">About</div>
+            <div class="card-sub">
+              This site uses RAG: it searches your docs chunks first, then sends the best matches to the AI API.
+              You get answers + citations + a short interactive phrase.
+            </div>
+            <div class="card-sub">
+              To add more knowledge: update <span class="pill">docs_index.json</span>.
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
