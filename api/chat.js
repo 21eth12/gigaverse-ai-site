@@ -4,9 +4,9 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Use POST" });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "Missing OPENAI_API_KEY in Vercel env vars" });
+      return res.status(500).json({ error: "Missing GROQ_API_KEY in Vercel env vars" });
     }
 
     const { question, chunks } = req.body || {};
@@ -14,96 +14,77 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing 'question' string" });
     }
 
-    const safeChunks = Array.isArray(chunks) ? chunks.slice(0, 6) : [];
-    const context = safeChunks.map((c, i) => {
-      const title = c.title || "Untitled";
-      const section = c.section ? ` — ${c.section}` : "";
-      const text = c.text || "";
-      return `[${i + 1}] ${title}${section}\n${text}`;
-    }).join("\n\n");
+    const safeChunks = Array.isArray(chunks) ? chunks.slice(0, 8) : [];
+    const context = safeChunks
+      .map((c, i) => {
+        const title = c?.title || "Untitled";
+        const section = c?.section ? ` — ${c.section}` : "";
+        const text = c?.text || "";
+        const source = c?.source || c?.url || title;
+        return `[#${i + 1}] ${title}${section}\nSOURCE: ${source}\n${text}`.trim();
+      })
+      .join("\n\n---\n\n");
 
-    // We’ll ask the model to return JSON (easy to parse reliably)
-    const prompt = `
+    const system = `
 You are "GIGUS", the Gigaverse Docs AI.
-Answer ONLY using the provided DOC CHUNKS. If not in chunks, say you don't know.
-Return JSON ONLY with keys: answer, phrase, citations.
-
-- answer: clear helpful answer (short/medium)
-- phrase: a short, fun, interactive 1-liner (like a terminal quip)
-- citations: array of numbers referencing chunks you used, e.g. [1,3]
-
-DOC CHUNKS:
-${context || "(no chunks provided)"}
-
-QUESTION:
-${question}
+Answer ONLY using the DOC CHUNKS provided below.
+If the answer is not in the chunks, say you don't know and ask the user to check Sources.
+Return JSON ONLY with keys:
+- answer (string)
+- phrase (string) // short fun 1-liner
+- citations (array of { index:number, title:string, section?:string, source?:string })
 `;
 
-    const r = await fetch("https://api.openai.com/v1/responses", {
+    const user = `
+USER QUESTION:
+${question}
+
+DOC CHUNKS:
+${context || "(none provided)"}
+`;
+
+    const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-5",
-        input: prompt,
-        // keep it snappy
-        reasoning: { effort: "low" }
-      })
+        model: "llama-3.1-8b-instant",
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system.trim() },
+          { role: "user", content: user.trim() },
+        ],
+      }),
     });
 
-    const raw = await r.json().catch(() => ({}));
-    if (!r.ok) {
-      return res.status(r.status).json({
-        error: raw?.error?.message || "OpenAI request failed",
-        details: raw
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      return res.status(resp.status).json({
+        error: data?.error?.message || "Groq API error",
+        details: data,
       });
     }
 
-    // Responses API returns output_text inside output array items.
-    // We'll extract the combined output_text.
-    let text = "";
-    try {
-      const out = raw.output || [];
-      for (const item of out) {
-        if (item.type === "message" && Array.isArray(item.content)) {
-          for (const c of item.content) {
-            if (c.type === "output_text" && typeof c.text === "string") {
-              text += c.text;
-            }
-          }
-        }
-      }
-    } catch {}
+    const content = data?.choices?.[0]?.message?.content || "{}";
 
-    // Parse JSON from model
-    let parsed = null;
+    let parsed;
     try {
-      parsed = JSON.parse(text.trim());
+      parsed = JSON.parse(content);
     } catch {
-      // fallback if model didn't obey strict JSON
-      parsed = { answer: text.trim() || "No answer.", phrase: "", citations: [] };
+      // fallback if model returns imperfect json
+      parsed = { answer: content, phrase: "⚡ Processing complete.", citations: [] };
     }
 
-    const citeNums = Array.isArray(parsed.citations) ? parsed.citations : [];
-    const citations = citeNums
-      .map(n => safeChunks[(n - 1)])
-      .filter(Boolean)
-      .map(c => ({ title: c.title, section: c.section, id: c.id }));
+    // minimal guardrails
+    if (!parsed.phrase) parsed.phrase = "⚡ Done.";
+    if (!parsed.citations) parsed.citations = [];
 
-    // If model didn't cite, just return the chunks we sent (still transparent)
-    const finalCitations = citations.length ? citations : safeChunks.map(c => ({
-      title: c.title, section: c.section, id: c.id
-    }));
-
-    return res.status(200).json({
-      answer: parsed.answer || "No answer.",
-      phrase: parsed.phrase || "",
-      citations: finalCitations
-    });
-  } catch (e) {
-    return res.status(500).json({ error: String(e) });
+    return res.status(200).json(parsed);
+  } catch (err) {
+    return res.status(500).json({ error: "Server error", details: String(err) });
   }
 }
-
