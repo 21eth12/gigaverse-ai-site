@@ -1,1 +1,39 @@
+[
+  {
+    "id": "gig-1",
+    "title": "Gigus Maximus",
+    "section": "Lore & Special Characters",
+    "text": "Gigus Maximus is the sentient AI creator of gigaverse. He is an agentic antagonist who forms, controls, and enriches several core game and story mechanics in the gigaverse."
+  },
+  {
+    "id": "auc-1",
+    "title": "Auctioneer",
+    "section": "Lore & Special Characters",
+    "text": "The Auctioneer executed auctions for Special Characters (1/1 GLHFers), conducted 27 auctions, raising in excess of 100 ETH, and can be found staffing the Gigamarket."
+  },
+  {
+    "id": "auc-2",
+    "title": "Corruption",
+    "section": "Auctioneer",
+    "text": "The Auctioneer became corrupted by The Devil (the second Special Character he auctioned). This corruption causes him to behave erratically."
+  },
+  {
+    "id": "ton-1",
+    "title": "Tonno & Cyclops",
+    "section": "Lore & Special Characters",
+    "text": "Tonno is the Fishing Vendor of the Gigaverse. Cyclops is the lovable one-eyed cat of the Gigaverse. They moved together from near the sea, and Cyclops is in charge."
+  },
+  {
+    "id": "rules-1",
+    "title": "Fair Play Rules",
+    "section": "Strictly Prohibited",
+    "text": "Strictly prohibited: technical & non-technical exploits (client hacking, DDoS, double spending, smart contract exploits) and scams/social engineering (phishing, scamming players for keys/resources/assets)."
+  },
+  {
+    "id": "links-1",
+    "title": "Links & Contracts",
+    "section": "General",
+    "text": "Official links include gigaverse website, gigaverse twitter, marketplace links for ROMS, giglings, items, and GLHFers links. Do not trust other links or surprise airdrops."
+  }
+]
 
