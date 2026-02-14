@@ -1,39 +1,122 @@
 [
   {
-    "id": "gig-1",
-    "title": "Gigus Maximus",
-    "section": "Lore & Special Characters",
-    "text": "Gigus Maximus is the sentient AI creator of gigaverse. He is an agentic antagonist who forms, controls, and enriches several core game and story mechanics in the gigaverse."
+    "id": "about-1",
+    "title": "About Gigaverse",
+    "section": "Overview",
+    "text": "Gigaverse is an epic crypto RPG built by GLHF, live on Abstract and powered by Proof of Play. Players progress through the world, upgrade characters, collect rare items, and more."
   },
   {
-    "id": "auc-1",
-    "title": "Auctioneer",
-    "section": "Lore & Special Characters",
-    "text": "The Auctioneer executed auctions for Special Characters (1/1 GLHFers), conducted 27 auctions, raising in excess of 100 ETH, and can be found staffing the Gigamarket."
+    "id": "getting-started-1",
+    "title": "Getting Started",
+    "section": "Core Loop",
+    "text": "Start playing by progressing through activities like combat and fishing, collecting items/materials, and upgrading your character and gear over time."
   },
   {
-    "id": "auc-2",
-    "title": "Corruption",
-    "section": "Auctioneer",
-    "text": "The Auctioneer became corrupted by The Devil (the second Special Character he auctioned). This corruption causes him to behave erratically."
+    "id": "abstract-xp-1",
+    "title": "Abstract XP",
+    "section": "What it is",
+    "text": "Abstract XP is a progression/engagement concept used across the Abstract ecosystem. In Gigaverse docs, it’s part of the Abstract Eco section alongside stubs and badges."
   },
   {
-    "id": "ton-1",
-    "title": "Tonno & Cyclops",
-    "section": "Lore & Special Characters",
-    "text": "Tonno is the Fishing Vendor of the Gigaverse. Cyclops is the lovable one-eyed cat of the Gigaverse. They moved together from near the sea, and Cyclops is in charge."
+    "id": "crafting-overview-1",
+    "title": "Crafting Overview",
+    "section": "Stations & crafting",
+    "text": "Crafting uses different stations (like Alchemy Bench and Workbench) to create items/materials. Some activities require crafted tools (for example, hands used to break pots)."
   },
   {
-    "id": "rules-1",
+    "id": "alchemy-bench-1",
+    "title": "Alchemy Bench",
+    "section": "Station",
+    "text": "The Alchemy Bench is a crafting station used to create and combine specific materials/items. It’s listed under Crafting & Stations."
+  },
+  {
+    "id": "workbench-1",
+    "title": "Workbench",
+    "section": "Station",
+    "text": "The Workbench is a crafting station. It’s required for crafting hands (like Paper Hands and Rock Hands) which are used to break pots."
+  },
+  {
+    "id": "factions-1",
+    "title": "Factions",
+    "section": "What factions are",
+    "text": "Factions are an in-game system that can affect progression and access to faction-related activities/features. The docs include a dedicated Factions section and a Faction Altar Room page."
+  },
+  {
+    "id": "faction-altar-room-1",
+    "title": "Faction Altar Room",
+    "section": "Location / Feature",
+    "text": "Faction Altar Room is a faction-related location/feature documented under the Factions section."
+  },
+  {
+    "id": "pots-1",
+    "title": "Pots",
+    "section": "World Environment",
+    "text": "Pots contain utility items. There are two types: Blue and Brown. You need 5 Energy and Hands (crafted in the Workbench) to break pots."
+  },
+  {
+    "id": "pots-2",
+    "title": "Pots",
+    "section": "Blue Pots",
+    "text": "Blue pots can be broken with Paper Hands. They may contain: Giga Shards, Dungeon Scrap, Wood, Stone, and a Glass Orb (Rare)."
+  },
+  {
+    "id": "pots-3",
+    "title": "Pots",
+    "section": "Brown Pots",
+    "text": "Brown pots can be broken with Rock Hands. They may contain: Giga Shards, Dungeon Scrap, Stone, Wood, Bone, Fiber, Blank Tomes, Small or Medium consumables, or a Ruby Key (Epic)."
+  },
+  {
+    "id": "chests-1",
+    "title": "Chests",
+    "section": "World Environment",
+    "text": "Chests contain a variety of items. Currently there are two types: Normal Chest and Juice Chest."
+  },
+  {
+    "id": "chests-2",
+    "title": "Chests",
+    "section": "Normal Chest",
+    "text": "Normal Chest is available for all players (juiced or not). Location: bottom of the map, on the right side of the fishing area. Can be claimed once per week. Contains common crafting materials."
+  },
+  {
+    "id": "chests-3",
+    "title": "Chests",
+    "section": "Juice Chest",
+    "text": "Juice Chest is available exclusively for Giga Juice enjoyers. Location: top of the map, on the left side of the Dungetron area across the bridge. Can be claimed once per week. Contains exclusive charm crafting materials such as Hexchain, Sapphire, and Soulmint."
+  },
+  {
+    "id": "in-game-trading-1",
+    "title": "In-Game Trading",
+    "section": "Gigamarket",
+    "text": "Gigamarket is part of the In-Game Trading section. It’s where players interact with market-style trading features."
+  },
+  {
+    "id": "in-game-trading-2",
+    "title": "In-Game Trading",
+    "section": "Traveling Merchants",
+    "text": "Traveling Merchants are part of the In-Game Trading section. They act as roaming vendor/trader features within the game’s ecosystem."
+  },
+  {
+    "id": "combat-1",
+    "title": "Combat",
+    "section": "Dungetron Overview",
+    "text": "Dungetron is the core combat dungeon content listed under Combat. It’s a major activity area referenced by other systems (like the Juice Chest location near the Dungetron area)."
+  },
+  {
+    "id": "fishing-1",
+    "title": "Fishing",
+    "section": "Fishing Overview",
+    "text": "Fishing is a major activity area. The Normal Chest is located near the fishing area (bottom of the map, right side)."
+  },
+  {
+    "id": "giga-juice-1",
+    "title": "Giga Juice",
+    "section": "Access / Benefits",
+    "text": "Giga Juice is a premium/enhanced access state. Some rewards/features are exclusive to Giga Juice enjoyers, like the Juice Chest."
+  },
+  {
+    "id": "fair-play-1",
     "title": "Fair Play Rules",
-    "section": "Strictly Prohibited",
-    "text": "Strictly prohibited: technical & non-technical exploits (client hacking, DDoS, double spending, smart contract exploits) and scams/social engineering (phishing, scamming players for keys/resources/assets)."
-  },
-  {
-    "id": "links-1",
-    "title": "Links & Contracts",
     "section": "General",
-    "text": "Official links include gigaverse website, gigaverse twitter, marketplace links for ROMS, giglings, items, and GLHFers links. Do not trust other links or surprise airdrops."
+    "text": "Gigaverse includes Fair Play Rules in its General section. These rules define acceptable behavior and help protect the game economy and players."
   }
 ]
-
