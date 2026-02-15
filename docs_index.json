@@ -2,121 +2,241 @@
   {
     "id": "about-1",
     "title": "About Gigaverse",
-    "section": "Overview",
-    "text": "Gigaverse is an epic crypto RPG built by GLHF, live on Abstract and powered by Proof of Play. Players progress through the world, upgrade characters, collect rare items, and more."
+    "section": "What it is",
+    "text": "Gigaverse is a crypto RPG by GLHF, live on Abstract and powered by Proof of Play. Core loop: progress, earn, upgrade your character, and collect rare items. Keywords: RPG, Abstract, Proof of Play, progression, items."
   },
   {
     "id": "getting-started-1",
     "title": "Getting Started",
-    "section": "Core Loop",
-    "text": "Start playing by progressing through activities like combat and fishing, collecting items/materials, and upgrading your character and gear over time."
+    "section": "New player basics",
+    "text": "Start by learning movement, core UI, and progression loop: gather resources, fight or explore, gain XP, and upgrade. Keywords: beginner, start, tutorial, controls, progression, leveling."
+  },
+
+  {
+    "id": "worldenv-pots-1",
+    "title": "Pots",
+    "section": "Overview",
+    "text": "Pots are breakable containers that drop utility materials and items. There are two types of pots: Blue and Brown. Keywords: pots, break, drops, materials, blue pot, brown pot."
   },
   {
-    "id": "abstract-xp-1",
-    "title": "Abstract XP",
+    "id": "worldenv-pots-2",
+    "title": "Pots",
+    "section": "How to break pots",
+    "text": "Breaking pots costs 5 Energy and requires Hands crafted in the Workbench. Blue pots use Paper Hands; Brown pots use Rock Hands. Keywords: 5 energy, hands, workbench, paper hands, rock hands."
+  },
+  {
+    "id": "worldenv-pots-3",
+    "title": "Pots",
+    "section": "Blue pots drops",
+    "text": "Blue pots (Paper Hands) may contain: Giga Shards, Dungeon Scrap, Wood, Stone, and a Glass Orb (Rare). Keywords: giga shards, dungeon scrap, glass orb, rare, wood, stone."
+  },
+  {
+    "id": "worldenv-pots-4",
+    "title": "Pots",
+    "section": "Brown pots drops",
+    "text": "Brown pots (Rock Hands) may contain: Giga Shards, Dungeon Scrap, Stone, Wood, Bone, Fiber, Blank Tomes, Small/Medium consumables, and a Ruby Key (Epic). Keywords: ruby key, epic, bone, fiber, blank tomes, consumables."
+  },
+
+  {
+    "id": "worldenv-chests-1",
+    "title": "Chests",
+    "section": "Overview",
+    "text": "Chests provide loot on timers and are found in specific world locations. Examples include Normal Chest and Juice Chest. Keywords: chest, claim, cooldown, weekly, materials."
+  },
+  {
+    "id": "worldenv-chests-2",
+    "title": "Chests",
+    "section": "Normal Chest location + timer",
+    "text": "Normal Chest location: bottom of the map on the right side of the fishing area. Claimable once per week. Keywords: normal chest, weekly, fishing area, bottom right."
+  },
+  {
+    "id": "worldenv-chests-3",
+    "title": "Chests",
+    "section": "Juice Chest rewards",
+    "text": "Juice Chest contains Hexchain, Sapphire, and Soulmint (exclusive charm crafting materials). Keywords: juice chest, hexchain, sapphire, soulmint, charm crafting."
+  },
+
+  {
+    "id": "giga-juice-1",
+    "title": "Giga Juice",
     "section": "What it is",
-    "text": "Abstract XP is a progression/engagement concept used across the Abstract ecosystem. In Gigaverse docs, it’s part of the Abstract Eco section alongside stubs and badges."
+    "text": "Giga Juice is a premium/boost system tied to extra access/benefits inside Gigaverse. Keywords: giga juice, boosts, benefits, access."
   },
   {
-    "id": "crafting-overview-1",
-    "title": "Crafting Overview",
-    "section": "Stations & crafting",
-    "text": "Crafting uses different stations (like Alchemy Bench and Workbench) to create items/materials. Some activities require crafted tools (for example, hands used to break pots)."
+    "id": "giga-juice-2",
+    "title": "Giga Juice",
+    "section": "Benefits",
+    "text": "Benefits can include exclusive access and gameplay advantages described in the Giga Juice section. Keywords: benefits, perks, premium, access."
   },
   {
-    "id": "alchemy-bench-1",
-    "title": "Alchemy Bench",
-    "section": "Station",
-    "text": "The Alchemy Bench is a crafting station used to create and combine specific materials/items. It’s listed under Crafting & Stations."
+    "id": "giga-juice-3",
+    "title": "Giga Juice",
+    "section": "How to buy",
+    "text": "Giga Juice purchase info is documented in the 'How To Buy Giga Juice?' page. Keywords: buy, purchase, giga juice, instructions."
+  },
+
+  {
+    "id": "trading-1",
+    "title": "Gigamarket",
+    "section": "In-game trading overview",
+    "text": "Gigamarket is the in-game marketplace/trading hub where players can exchange items. Keywords: trade, marketplace, buy, sell, listings."
   },
   {
-    "id": "workbench-1",
-    "title": "Workbench",
-    "section": "Station",
-    "text": "The Workbench is a crafting station. It’s required for crafting hands (like Paper Hands and Rock Hands) which are used to break pots."
+    "id": "trading-2",
+    "title": "Traveling Merchants",
+    "section": "Merchants overview",
+    "text": "Traveling Merchants are special vendors/events that offer rotating items or deals. Keywords: merchant, vendor, traveling, rotation."
   },
+
   {
     "id": "factions-1",
     "title": "Factions",
     "section": "What factions are",
-    "text": "Factions are an in-game system that can affect progression and access to faction-related activities/features. The docs include a dedicated Factions section and a Faction Altar Room page."
+    "text": "Factions are a gameplay-aligned system with identity/progression and faction-specific activity. Related page: Faction Altar Room. Keywords: factions, allegiance, faction altar, progression."
   },
   {
-    "id": "faction-altar-room-1",
+    "id": "factions-2",
     "title": "Faction Altar Room",
-    "section": "Location / Feature",
-    "text": "Faction Altar Room is a faction-related location/feature documented under the Factions section."
+    "section": "Faction interaction",
+    "text": "Faction Altar Room relates to faction mechanics and how players interact with faction systems in-world. Keywords: altar room, faction room, choose faction, faction mechanics."
   },
-  {
-    "id": "pots-1",
-    "title": "Pots",
-    "section": "World Environment",
-    "text": "Pots contain utility items. There are two types: Blue and Brown. You need 5 Energy and Hands (crafted in the Workbench) to break pots."
-  },
-  {
-    "id": "pots-2",
-    "title": "Pots",
-    "section": "Blue Pots",
-    "text": "Blue pots can be broken with Paper Hands. They may contain: Giga Shards, Dungeon Scrap, Wood, Stone, and a Glass Orb (Rare)."
-  },
-  {
-    "id": "pots-3",
-    "title": "Pots",
-    "section": "Brown Pots",
-    "text": "Brown pots can be broken with Rock Hands. They may contain: Giga Shards, Dungeon Scrap, Stone, Wood, Bone, Fiber, Blank Tomes, Small or Medium consumables, or a Ruby Key (Epic)."
-  },
-  {
-    "id": "chests-1",
-    "title": "Chests",
-    "section": "World Environment",
-    "text": "Chests contain a variety of items. Currently there are two types: Normal Chest and Juice Chest."
-  },
-  {
-    "id": "chests-2",
-    "title": "Chests",
-    "section": "Normal Chest",
-    "text": "Normal Chest is available for all players (juiced or not). Location: bottom of the map, on the right side of the fishing area. Can be claimed once per week. Contains common crafting materials."
-  },
-  {
-    "id": "chests-3",
-    "title": "Chests",
-    "section": "Juice Chest",
-    "text": "Juice Chest is available exclusively for Giga Juice enjoyers. Location: top of the map, on the left side of the Dungetron area across the bridge. Can be claimed once per week. Contains exclusive charm crafting materials such as Hexchain, Sapphire, and Soulmint."
-  },
-  {
-    "id": "in-game-trading-1",
-    "title": "In-Game Trading",
-    "section": "Gigamarket",
-    "text": "Gigamarket is part of the In-Game Trading section. It’s where players interact with market-style trading features."
-  },
-  {
-    "id": "in-game-trading-2",
-    "title": "In-Game Trading",
-    "section": "Traveling Merchants",
-    "text": "Traveling Merchants are part of the In-Game Trading section. They act as roaming vendor/trader features within the game’s ecosystem."
-  },
+
   {
     "id": "combat-1",
-    "title": "Combat",
-    "section": "Dungetron Overview",
-    "text": "Dungetron is the core combat dungeon content listed under Combat. It’s a major activity area referenced by other systems (like the Juice Chest location near the Dungetron area)."
+    "title": "Dungetron Overview",
+    "section": "Combat loop",
+    "text": "Dungetron covers dungeon-style combat progression, rewards, and challenge flow. Keywords: dungeon, combat, dungetron, runs, rewards."
   },
+  {
+    "id": "combat-2",
+    "title": "Echo Battles",
+    "section": "Battle type",
+    "text": "Echo Battles are a combat mode/event type within Gigaverse. Keywords: echo battles, combat mode, fights."
+  },
+  {
+    "id": "combat-3",
+    "title": "Combat Skill Points",
+    "section": "Progression",
+    "text": "Combat Skill Points are used to power up combat-related progression. Keywords: skill points, upgrades, combat tree."
+  },
+
   {
     "id": "fishing-1",
-    "title": "Fishing",
-    "section": "Fishing Overview",
-    "text": "Fishing is a major activity area. The Normal Chest is located near the fishing area (bottom of the map, right side)."
+    "title": "Fishing Overview",
+    "section": "Fishing loop",
+    "text": "Fishing is a major gathering/progression activity with fish discovery and skill progression. Keywords: fishing, rods, bait, fish, progression."
   },
   {
-    "id": "giga-juice-1",
-    "title": "Giga Juice",
-    "section": "Access / Benefits",
-    "text": "Giga Juice is a premium/enhanced access state. Some rewards/features are exclusive to Giga Juice enjoyers, like the Juice Chest."
+    "id": "fishing-2",
+    "title": "Fishing Spells",
+    "section": "Spells",
+    "text": "Fishing spells provide special effects/boosts related to fishing. Keywords: spells, fishing boosts, effects."
   },
   {
-    "id": "fair-play-1",
+    "id": "fishing-3",
+    "title": "Fishing Skill Points",
+    "section": "Fishing progression",
+    "text": "Fishing skill points upgrade fishing performance and unlock fishing improvements. Keywords: fishing skill points, upgrades, progression."
+  },
+  {
+    "id": "fishing-4",
+    "title": "Fishing Equipment",
+    "section": "Gear",
+    "text": "Fishing equipment includes tools/gear for better fishing outcomes. Keywords: equipment, rod, upgrades."
+  },
+  {
+    "id": "fishing-5",
+    "title": "Fish Findex",
+    "section": "Fish index",
+    "text": "Fish Findex is a catalog/index of fish and fishing discoveries. Keywords: findex, fish list, collection."
+  },
+  {
+    "id": "fishing-6",
+    "title": "Fish Stall",
+    "section": "Vendor",
+    "text": "Fish Stall is a fishing-related vendor/interaction point. Keywords: fish stall, vendor, sell fish."
+  },
+
+  {
+    "id": "crafting-1",
+    "title": "Crafting Overview",
+    "section": "Crafting basics",
+    "text": "Crafting converts materials into usable items, gear, and tools via stations (Workbench, Alchemy Bench, etc.). Keywords: crafting, recipes, materials, stations."
+  },
+  {
+    "id": "crafting-2",
+    "title": "Workbench",
+    "section": "Core station",
+    "text": "Workbench is a main crafting station used for items like Hands (used to break pots). Keywords: workbench, hands, crafting station."
+  },
+  {
+    "id": "crafting-3",
+    "title": "Alchemy Bench",
+    "section": "Alchemy station",
+    "text": "Alchemy Bench is used for alchemy-related crafting. Keywords: alchemy, potions, bench."
+  },
+  {
+    "id": "crafting-4",
+    "title": "Hatchery",
+    "section": "Hatching system",
+    "text": "Hatchery relates to egg/creature hatching mechanics. Keywords: hatchery, eggs, hatching."
+  },
+  {
+    "id": "crafting-5",
+    "title": "Gear Station",
+    "section": "Gear crafting",
+    "text": "Gear Station focuses on equipment/gear crafting and upgrades. Keywords: gear, equipment, crafting."
+  },
+
+  {
+    "id": "conquest-1",
+    "title": "Conquest Overview",
+    "section": "Conquest mode",
+    "text": "Conquest is a combat/progression mode focused on broader objectives. Keywords: conquest, mode, objectives, battles."
+  },
+
+  {
+    "id": "creators-1",
+    "title": "Giga Creators Program",
+    "section": "Builders",
+    "text": "Giga Creators Program covers creator/builder participation and ecosystem building. Keywords: creators, builders, program, contribute."
+  },
+
+  {
+    "id": "lore-gigus-1",
+    "title": "Gigus Maximus",
+    "section": "Lore",
+    "text": "Gigus Maximus is a key lore figure in Gigaverse. Keywords: gigus maximus, lore, story, character."
+  },
+  {
+    "id": "lore-auctioneer-1",
+    "title": "Auctioneer",
+    "section": "Lore",
+    "text": "Auctioneer is a lore/special character connected to auctions and story. Keywords: auctioneer, auctions, lore."
+  },
+  {
+    "id": "lore-tonno-cyclops-1",
+    "title": "Tonno & Cyclops",
+    "section": "Lore",
+    "text": "Tonno & Cyclops are lore/special characters in the Gigaverse world. Keywords: tonno, cyclops, lore."
+  },
+  {
+    "id": "lore-hugis-munis-1",
+    "title": "Hugis & Munis",
+    "section": "Lore",
+    "text": "Hugis & Munis are lore/special characters. Keywords: hugis, munis, lore."
+  },
+
+  {
+    "id": "general-fairplay-1",
     "title": "Fair Play Rules",
-    "section": "General",
-    "text": "Gigaverse includes Fair Play Rules in its General section. These rules define acceptable behavior and help protect the game economy and players."
+    "section": "Rules",
+    "text": "Fair Play Rules define acceptable behavior and gameplay integrity rules. Keywords: fair play, rules, cheating, abuse."
+  },
+  {
+    "id": "general-links-1",
+    "title": "Links & Contracts",
+    "section": "Official links",
+    "text": "Links & Contracts page collects official links and contract references. Keywords: contracts, official links, verification."
   }
 ]
