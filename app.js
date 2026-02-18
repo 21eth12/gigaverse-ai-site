@@ -1,17 +1,13 @@
-/* app.js — Gigaverse Docs AI (Vercel + Real AI)
+/* app.js — Gigaverse Docs AI (Vercel + Groq)
    - Loads docs_index.json
    - Picks relevant chunks (lightweight search)
-   - Sends to /api/chat (Vercel serverless function)
-   - Renders answer + short phrase + citations
+   - Sends to /api/chat
+   - Renders answer + followups + citations (only when docs mode)
 */
 
 (() => {
-  // -----------------------------
-  // Helpers
-  // -----------------------------
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-
   const safeText = (v) => (typeof v === "string" ? v : "");
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
@@ -32,19 +28,11 @@
     if (node) node.style.display = "none";
   }
 
-  // Kill any old command palette / overlay that can trap clicks
   function killCommandPalette() {
     hideIfExists("#commandModal");
     hideIfExists(".command-modal");
     hideIfExists(".commandPalette");
-
-    // Hide common backdrops/overlays that block clicks
-    $$(".modal-backdrop, .backdrop, .overlay, [data-overlay]").forEach((n) => {
-      n.style.display = "none";
-      n.style.pointerEvents = "none";
-    });
-
-    // Stop Ctrl/Cmd+K from opening anything unknown
+    $$(".modal-backdrop, .backdrop, .overlay").forEach((n) => (n.style.display = "none"));
     window.addEventListener(
       "keydown",
       (e) => {
@@ -57,53 +45,27 @@
     );
   }
 
-  // -----------------------------
-  // State
-  // -----------------------------
-  const state = {
-    docs: [],
-    ready: false,
-    view: "chat", // chat | sources | about
-  };
-
-  // -----------------------------
-  // DOM bindings (with fallbacks)
-  // -----------------------------
-  function findNavButtonByText(txt) {
-    const needle = String(txt).trim().toLowerCase();
-    return (
-      $$("button, a").find((b) => (b.textContent || "").trim().toLowerCase() === needle) ||
-      null
-    );
-  }
+  const state = { docs: [], ready: false, view: "chat" };
 
   const dom = {
-    // Views/sections (optional)
     viewChat: $("#view-chat") || $("#chatView") || $("#ai-chat") || $("#mainChat"),
     viewSources: $("#view-sources") || $("#sourcesView"),
     viewAbout: $("#view-about") || $("#aboutView"),
 
-    // Nav buttons
-    btnChat: $("#nav-chat") || $("#btnChat") || findNavButtonByText("ai chat"),
-    btnSources: $("#nav-sources") || $("#btnSources") || findNavButtonByText("sources"),
-    btnAbout: $("#nav-about") || $("#btnAbout") || findNavButtonByText("about"),
+    btnChat: $("#nav-chat") || $("#btnChat") || $$("button, a").find((b) => (b.textContent || "").trim().toLowerCase() === "ai chat"),
+    btnSources: $("#nav-sources") || $("#btnSources") || $$("button, a").find((b) => (b.textContent || "").trim().toLowerCase() === "sources"),
+    btnAbout: $("#nav-about") || $("#btnAbout") || $$("button, a").find((b) => (b.textContent || "").trim().toLowerCase() === "about"),
 
-    // Chat UI
     messages: $("#messages") || $("#chatMessages") || $("#terminal") || $(".messages"),
-    input: $("#chatInput") || $("#prompt") || $("textarea") || $("input[type='text']"),
-    sendBtn: $("#sendBtn") || $("#askBtn") || findNavButtonByText("ask"),
+    input: $("#chatInput") || $("#prompt") || $("input[type='text']") || $("textarea"),
+    sendBtn: $("#sendBtn") || $("#askBtn") || $$("button").find((b) => (b.textContent || "").trim().toLowerCase() === "ask"),
 
-    // Status badges
     docsBadge: $("#docsBadge") || $("#docsLoaded") || $("[data-docs-badge]"),
     bootLine: $("#bootLine") || $("#bootingLine") || $("[data-boot-line]"),
 
-    // Sources list
     sourcesList: $("#sourcesList") || $("#sources") || $("[data-sources-list]"),
   };
 
-  // -----------------------------
-  // Navigation
-  // -----------------------------
   function setActiveNav() {
     const activeClass = "active";
     [dom.btnChat, dom.btnSources, dom.btnAbout].forEach((b) => b && b.classList.remove(activeClass));
@@ -115,24 +77,18 @@
   function setView(view) {
     state.view = view;
     setActiveNav();
-
-    // If your HTML has separate containers, toggle them
     if (dom.viewChat) dom.viewChat.style.display = view === "chat" ? "block" : "none";
     if (dom.viewSources) dom.viewSources.style.display = view === "sources" ? "block" : "none";
     if (dom.viewAbout) dom.viewAbout.style.display = view === "about" ? "block" : "none";
-
     if (view === "sources") renderSources();
   }
 
   function wireNav() {
-    if (dom.btnChat) dom.btnChat.addEventListener("click", (e) => (e.preventDefault(), setView("chat")));
-    if (dom.btnSources) dom.btnSources.addEventListener("click", (e) => (e.preventDefault(), setView("sources")));
-    if (dom.btnAbout) dom.btnAbout.addEventListener("click", (e) => (e.preventDefault(), setView("about")));
+    if (dom.btnChat) dom.btnChat.addEventListener("click", () => setView("chat"));
+    if (dom.btnSources) dom.btnSources.addEventListener("click", () => setView("sources"));
+    if (dom.btnAbout) dom.btnAbout.addEventListener("click", () => setView("about"));
   }
 
-  // -----------------------------
-  // Docs loading
-  // -----------------------------
   function normalizeDocChunk(raw, idx) {
     const title = safeText(raw.title || raw.file || raw.source || raw.doc || "Untitled");
     const section = safeText(raw.section || raw.heading || raw.subheading || "");
@@ -140,18 +96,11 @@
     return { id: raw.id ?? idx, title, section, text };
   }
 
-  function docsUrl() {
-    // Works on Vercel (/) and GitHub Pages (/repo/)
-    return new URL(`docs_index.json?cb=${Date.now()}`, window.location.href).toString();
-  }
-
   async function loadDocs() {
     try {
-      if (dom.bootLine) dom.bootLine.textContent = "Booting Docs AI Terminal…";
-
-      const res = await fetch(docsUrl(), { cache: "no-store" });
+      if (dom.bootLine) dom.bootLine.textContent = "Loading docs…";
+      const res = await fetch(`docs_index.json?cb=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`docs_index.json failed: ${res.status}`);
-
       const data = await res.json();
 
       const rawChunks = Array.isArray(data)
@@ -176,9 +125,6 @@
     }
   }
 
-  // -----------------------------
-  // Lightweight retrieval (client-side)
-  // -----------------------------
   function tokenize(str) {
     return safeText(str)
       .toLowerCase()
@@ -189,11 +135,8 @@
 
   function scoreChunk(qTokens, chunk) {
     if (!qTokens.length) return 0;
-
     const titleTokens = new Set(tokenize(chunk.title));
     const sectionTokens = new Set(tokenize(chunk.section));
-
-    // Only build a Set for text once we know we might need it
     const textSet = new Set(tokenize(chunk.text));
 
     let score = 0;
@@ -203,29 +146,21 @@
       if (textSet.has(t)) score += 1;
     }
 
-    // Slight preference for tighter chunks when they match
     const len = clamp(chunk.text.length, 200, 2000);
-    if (score > 0) score += 2000 / len;
-
+    score += score > 0 ? 2000 / len : 0;
     return score;
   }
 
-  function pickTopChunks(question, k = 6) {
+  function pickTopChunks(question, k = 8) {
     const qTokens = tokenize(question);
-
     const scored = state.docs
       .map((c) => ({ c, s: scoreChunk(qTokens, c) }))
       .sort((a, b) => b.s - a.s);
 
     const picked = scored.filter((x) => x.s > 0).slice(0, k).map((x) => x.c);
-
-    // If nothing matched, still send a few chunks (so it can respond at all)
     return picked.length ? picked : state.docs.slice(0, k);
   }
 
-  // -----------------------------
-  // Chat rendering
-  // -----------------------------
   function ensureMessagesBox() {
     if (!dom.messages) {
       const host = dom.viewChat || document.body;
@@ -236,8 +171,8 @@
 
   function addMessage(role, text, meta = {}) {
     ensureMessagesBox();
-
     const name = role === "user" ? "YOU" : "GIGUS";
+
     const wrapper = el("div", { class: `msg ${role}` });
 
     const header = el("div", { class: "msg-header" }, [
@@ -251,26 +186,41 @@
     wrapper.appendChild(header);
     wrapper.appendChild(body);
 
-    if (role === "assistant" && meta.phrase) {
-      wrapper.appendChild(el("div", { class: "msg-phrase", text: safeText(meta.phrase) }));
+    // Followups (helper mode)
+    if (role === "assistant" && Array.isArray(meta.followups) && meta.followups.length) {
+      wrapper.appendChild(el("div", { class: "msg-cite-title", text: "Quick questions:" }));
+      const ul = el("ul", { class: "msg-cites" });
+      meta.followups.slice(0, 2).forEach((q) => ul.appendChild(el("li", { text: safeText(q) })));
+      wrapper.appendChild(ul);
     }
 
+    // Citations (docs mode)
     if (role === "assistant" && Array.isArray(meta.citations) && meta.citations.length) {
       wrapper.appendChild(el("div", { class: "msg-cite-title", text: "Sources:" }));
-      const citeList = el("ul", { class: "msg-cites" });
+      const ul = el("ul", { class: "msg-cites" });
 
-      meta.citations.slice(0, 6).forEach((c) => {
-        const t = safeText(c.title || "Untitled");
-        const s = safeText(c.section || "");
-        citeList.appendChild(el("li", { text: s ? `${t} — ${s}` : t }));
+      // dedupe
+      const seen = new Set();
+      const unique = [];
+      for (const c of meta.citations) {
+        const t = safeText(c.title).trim();
+        const s = safeText(c.section).trim();
+        const key = `${t}__${s}`;
+        if (!t) continue;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push({ title: t, section: s });
+        }
+      }
+
+      unique.slice(0, 3).forEach((c) => {
+        ul.appendChild(el("li", { text: c.section ? `${c.title} — ${c.section}` : c.title }));
       });
-
-      wrapper.appendChild(citeList);
+      wrapper.appendChild(ul);
     }
 
     dom.messages.appendChild(wrapper);
     dom.messages.scrollTop = dom.messages.scrollHeight;
-
     return wrapper;
   }
 
@@ -279,11 +229,8 @@
     if (dom.input) dom.input.disabled = isBusy;
   }
 
-  // -----------------------------
-  // Call Vercel API
-  // -----------------------------
   async function askServer(question) {
-    const chunks = pickTopChunks(question, 6);
+    const chunks = pickTopChunks(question, 8);
 
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -292,24 +239,18 @@
     });
 
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const msg = data?.error || `Server error (${res.status})`;
-      throw new Error(msg);
-    }
+    if (!res.ok) throw new Error(data?.error || `Server error (${res.status})`);
 
     return {
+      mode: data.mode === "docs" ? "docs" : "helper",
       answer: safeText(data.answer) || "(No answer returned.)",
-      phrase: safeText(data.phrase),
+      followups: Array.isArray(data.followups) ? data.followups : [],
       citations: Array.isArray(data.citations) ? data.citations : [],
     };
   }
 
-  // -----------------------------
-  // Sources view
-  // -----------------------------
   function renderSources() {
     if (!dom.sourcesList) return;
-
     dom.sourcesList.innerHTML = "";
 
     if (!state.docs.length) {
@@ -326,20 +267,16 @@
     for (const [title, chunks] of byTitle.entries()) {
       const box = el("div", { class: "source-card" });
       box.appendChild(el("div", { class: "source-title", text: title }));
-
       const ul = el("ul", { class: "source-sections" });
       chunks.slice(0, 10).forEach((c) => {
-        ul.appendChild(el("li", { text: c.section ? c.section : "(no section)" }));
+        const label = c.section ? c.section : "(no section)";
+        ul.appendChild(el("li", { text: label }));
       });
-
       box.appendChild(ul);
       dom.sourcesList.appendChild(box);
     }
   }
 
-  // -----------------------------
-  // Wire chat input
-  // -----------------------------
   function wireChat() {
     if (!dom.input || !dom.sendBtn) return;
 
@@ -351,43 +288,46 @@
       setBusy(true);
 
       addMessage("user", q);
-
-      // Show a proper "thinking" line
-      const typing = addMessage("assistant", "GIGUS thinking…", { tag: "thinking" });
+      const typing = addMessage("assistant", "Thinking…", { tag: "working" });
 
       try {
-        if (!state.ready) {
-          throw new Error("Docs not loaded yet. Make sure docs_index.json exists and refresh.");
-        }
+        if (!state.ready) throw new Error("Docs not loaded yet. Check docs_index.json is accessible.");
 
         const out = await askServer(q);
 
-        // Update typing message in-place
+        // Replace typing message body
         typing.querySelector(".msg-tag")?.remove();
-        const body = typing.querySelector(".msg-body");
-        if (body) body.textContent = out.answer;
+        typing.querySelector(".msg-body").textContent = out.answer;
 
-        // Remove old phrase/cites if any (safety)
-        typing.querySelector(".msg-phrase")?.remove();
-        typing.querySelector(".msg-cite-title")?.remove();
-        typing.querySelector(".msg-cites")?.remove();
+        if (out.mode === "helper" && out.followups.length) {
+          typing.appendChild(el("div", { class: "msg-cite-title", text: "Quick questions:" }));
+          const ul = el("ul", { class: "msg-cites" });
+          out.followups.slice(0, 2).forEach((x) => ul.appendChild(el("li", { text: safeText(x) })));
+          typing.appendChild(ul);
+        }
 
-        if (out.phrase) typing.appendChild(el("div", { class: "msg-phrase", text: out.phrase }));
-
-        if (out.citations?.length) {
+        if (out.mode === "docs" && out.citations.length) {
           typing.appendChild(el("div", { class: "msg-cite-title", text: "Sources:" }));
           const ul = el("ul", { class: "msg-cites" });
-          out.citations.slice(0, 6).forEach((c) => {
-            const t = safeText(c.title || "Untitled");
-            const s = safeText(c.section || "");
-            ul.appendChild(el("li", { text: s ? `${t} — ${s}` : t }));
+
+          const seen = new Set();
+          const unique = [];
+          for (const c of out.citations) {
+            const t = safeText(c.title).trim();
+            const s = safeText(c.section).trim();
+            const key = `${t}__${s}`;
+            if (!t) continue;
+            if (!seen.has(key)) { seen.add(key); unique.push({ title: t, section: s }); }
+          }
+
+          unique.slice(0, 3).forEach((c) => {
+            ul.appendChild(el("li", { text: c.section ? `${c.title} — ${c.section}` : c.title }));
           });
           typing.appendChild(ul);
         }
       } catch (err) {
         typing.querySelector(".msg-tag")?.remove();
-        const body = typing.querySelector(".msg-body");
-        if (body) body.textContent = `Error: ${err.message}`;
+        typing.querySelector(".msg-body").textContent = `Error: ${err.message}`;
       } finally {
         setBusy(false);
         dom.input.focus();
@@ -395,35 +335,27 @@
     };
 
     dom.sendBtn.addEventListener("click", send);
-
     dom.input.addEventListener("keydown", (e) => {
-      // If input is textarea, allow Shift+Enter for newline
-      const isTextArea = dom.input && dom.input.tagName === "TEXTAREA";
-      if (e.key === "Enter" && (!isTextArea || !e.shiftKey)) {
+      if (e.key === "Enter") {
         e.preventDefault();
         send();
       }
     });
   }
 
-  // -----------------------------
-  // Boot
-  // -----------------------------
   async function init() {
     killCommandPalette();
     wireNav();
     wireChat();
-
     setView("chat");
 
     await loadDocs();
 
-    ensureMessagesBox();
     if (dom.messages && dom.messages.childElementCount === 0) {
       addMessage(
         "assistant",
-        "Ask me anything about the game. I’ll answer using the docs I have, and I’ll cite sources.",
-        { phrase: "Boot sequence complete. Awaiting input…" }
+        "Ask a Gigaverse question and I’ll answer using the docs. If it’s not in the docs yet, I’ll guide you to the right place.",
+        { }
       );
     }
   }
