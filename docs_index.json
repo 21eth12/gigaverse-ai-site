@@ -1,242 +1,954 @@
 [
   {
-    "id": "about-1",
-    "title": "About Gigaverse",
-    "section": "What it is",
-    "text": "Gigaverse is a crypto RPG by GLHF, live on Abstract and powered by Proof of Play. Core loop: progress, earn, upgrade your character, and collect rare items. Keywords: RPG, Abstract, Proof of Play, progression, items."
+    "id": "gb-11ae42",
+    "title": "About Gigaverse | gigaverse | GLHFershashtagarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightchevron-right",
+    "section": "hashtagA crypto RPG built by GLHF.",
+    "url": "https://glhfers.gitbook.io/gigaverse",
+    "text": "Play now ➜ gigaverse.ioarrow-up-right. 🎮\n\nMore about who we are, what we're building, and our progress:\n\n➜ 111 days of Gigaversearrow-up-right\n➜ 200 days of Gigaversearrow-up-right\n➜ $2M fundraisearrow-up-right from 1confirmationarrow-up-right\n\nGigaverse has no official roadmap: updates to the game and our ecosystem are released unexpectedly on a rolling basis. This allows the builders at GLHF to operate with complete agility and to always deliver on what our players want most. \n\nCore game design principles include: (1) keeping it easy to understand and play (we want your uncle Jebediah and your little niece Zelda to enjoy the game), (2) building features that give players the thrill of taking risks (good luck) and earning rewards (have fun), and (3) leveraging the power of nostalgia through top tier pixels and a timeless RPG story you play a central role in. \n\nWe look forward to welcoming you to Gigaverse. \n\n— GLHF Team\n\nLast updated 20 days ago"
   },
   {
-    "id": "getting-started-1",
-    "title": "Getting Started",
-    "section": "New player basics",
-    "text": "Start by learning movement, core UI, and progression loop: gather resources, fight or explore, gain XP, and upgrade. Keywords: beginner, start, tutorial, controls, progression, leveling."
-  },
-
-  {
-    "id": "worldenv-pots-1",
-    "title": "Pots",
+    "id": "gb-1baf50c3",
+    "title": "Getting Started | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-righttriangle-exclamationarrow-up-rightarrow-up-righthashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
     "section": "Overview",
-    "text": "Pots are breakable containers that drop utility materials and items. There are two types of pots: Blue and Brown. Keywords: pots, break, drops, materials, blue pot, brown pot."
+    "url": "https://glhfers.gitbook.io/gigaverse/getting-started",
+    "text": "We've intentionally kept Gigaverse very easy to figure-out and start playing without the need for a guide or instructions. That said, this page breaks down the process step by step and gives you an overview of the largest current game loops."
   },
   {
-    "id": "worldenv-pots-2",
-    "title": "Pots",
-    "section": "How to break pots",
-    "text": "Breaking pots costs 5 Energy and requires Hands crafted in the Workbench. Blue pots use Paper Hands; Brown pots use Rock Hands. Keywords: 5 energy, hands, workbench, paper hands, rock hands."
+    "id": "gb-36be0195",
+    "title": "Getting Started | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-righttriangle-exclamationarrow-up-rightarrow-up-righthashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagRequirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/getting-started",
+    "text": "- Up to date web browser\n\nUp to date web browser\n- Either 0.005 ETH or $20 or Noob Pass NFT arrow-up-right to create an account\n\nEither 0.005 ETH or $20 or Noob Pass NFT arrow-up-right to create an account\n\nDO NOT send ETH directly to Abstract Global Wallet (AGW) from Ethereum (or any evm chain), it will be lost. You need to bridge it via Relay Bridgearrow-up-right OR Abstract Bridgearrow-up-right."
   },
   {
-    "id": "worldenv-pots-3",
-    "title": "Pots",
-    "section": "Blue pots drops",
-    "text": "Blue pots (Paper Hands) may contain: Giga Shards, Dungeon Scrap, Wood, Stone, and a Glass Orb (Rare). Keywords: giga shards, dungeon scrap, glass orb, rare, wood, stone."
+    "id": "gb-fdba56c6",
+    "title": "Getting Started | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-righttriangle-exclamationarrow-up-rightarrow-up-righthashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagAccount Setup",
+    "url": "https://glhfers.gitbook.io/gigaverse/getting-started",
+    "text": "- Go to https://gigaverse.ioarrow-up-right\n\nGo to https://gigaverse.ioarrow-up-right\n- Press Connect and sign up with your email account or any other suitable method\n\nPress Connect and sign up with your email account or any other suitable method\n- Select to pay Directly (if you already have ETH in Abstract Global Wallet) ORBridge ETH from any chain using Jumper exchange ORPay via Credit Card, etc. via STRIPE payment gateway\n\nSelect to pay\n- Directly (if you already have ETH in Abstract Global Wallet) OR\n\nDirectly (if you already have ETH in Abstract Global Wallet) OR\n- Bridge ETH from any chain using Jumper exchange OR\n\nBridge ETH from any chain using Jumper exchange OR\n- Pay via Credit Card, etc. via STRIPE payment gateway\n\nPay via Credit Card, etc. via STRIPE payment gateway\n- Game account will be automatically created and funded for you\n\nGame account will be automatically created and funded for you\n- Receive access & a unique username NFT\n\nReceive access & a unique username NFT\n- Play!\n\nPlay!"
   },
   {
-    "id": "worldenv-pots-4",
-    "title": "Pots",
-    "section": "Brown pots drops",
-    "text": "Brown pots (Rock Hands) may contain: Giga Shards, Dungeon Scrap, Stone, Wood, Bone, Fiber, Blank Tomes, Small/Medium consumables, and a Ruby Key (Epic). Keywords: ruby key, epic, bone, fiber, blank tomes, consumables."
+    "id": "gb-e8bf0fce",
+    "title": "Getting Started | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-righttriangle-exclamationarrow-up-rightarrow-up-righthashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagGameplay Loops",
+    "url": "https://glhfers.gitbook.io/gigaverse/getting-started",
+    "text": "Currently, the gameplay consists of the following\n- Combat (Roguelite Dungeon game modes)\n\nCombat (Roguelite Dungeon game modes)\n- Fishing (Progressable Skill with Movement Prediction game mode)\n\nFishing (Progressable Skill with Movement Prediction game mode)\n- Conquest (Team PvP territory capture mode)\n\nConquest (Team PvP territory capture mode)\n- Alchemy (Craft Potions, gain Alchemy XP)\n\nAlchemy (Craft Potions, gain Alchemy XP)\n- Gear (Craft Equipment, gain Workbench XP)\n\nGear (Craft Equipment, gain Workbench XP)\n- Pets (Giglings: Hatch/Ride/Cook Fish/Feed Food/Produce Resources)\n\nPets (Giglings: Hatch/Ride/Cook Fish/Feed Food/Produce Resources)\n- Trading (Gigamarket)\n\nTrading (Gigamarket)"
   },
-
   {
-    "id": "worldenv-chests-1",
-    "title": "Chests",
+    "id": "gb-6a47088e",
+    "title": "Getting Started | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-righttriangle-exclamationarrow-up-rightarrow-up-righthashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagPets",
+    "url": "https://glhfers.gitbook.io/gigaverse/getting-started",
+    "text": "Nurture eggs and hatch Giglings, cook fish into food & feed them to produce resources (dung or butterflies). You can also ride them in the gigaverse. Learn more: Gigaverse Giglings"
+  },
+  {
+    "id": "gb-44bf0f69",
+    "title": "Getting Started | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-righttriangle-exclamationarrow-up-rightarrow-up-righthashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagTrade",
+    "url": "https://glhfers.gitbook.io/gigaverse/getting-started",
+    "text": "Trade: Become a master trader. Buy and sell items directly on our ingame marketplace with ETH directly from your Abstract Global Wallet. Learn more: Gigamarket\n\nLast updated 21 days ago"
+  },
+  {
+    "id": "gb-4d6640f2",
+    "title": "Dungetron Overview | gigaverse | GLHFerschevron-leftchevron-right",
     "section": "Overview",
-    "text": "Chests provide loot on timers and are found in specific world locations. Examples include Normal Chest and Juice Chest. Keywords: chest, claim, cooldown, weekly, materials."
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/dungetron-overview",
+    "text": "Dungetron is a rogue-lite style combat dungeon with enemies of increasing difficulty. There are 4 rooms to each of the 4 floors. As you clear each room by defeating the enemy, you will receive items they drop. You will keep these items even when you die. Once you die, your progress is reset and you must begin again from the start of the dungeon.\n\nCurrently, there are two dungeons in the game:\n\nDungetron 5000: Normal\n\nDungetron: Underhaul\n\nIn the dungeons, you also encounter Echoes, which are instances of other real players.\n\nLearn more here: Echo Battles\n\nLast updated 2 months ago"
   },
   {
-    "id": "worldenv-chests-2",
-    "title": "Chests",
-    "section": "Normal Chest location + timer",
-    "text": "Normal Chest location: bottom of the map on the right side of the fishing area. Claimable once per week. Keywords: normal chest, weekly, fishing area, bottom right."
+    "id": "gb-d662fcb6",
+    "title": "Fishing Overview | gigaverse | GLHFersarrow-up-righthashtagcircle-checkhashtaghashtaghashtagarrow-up-righthashtagcircle-infochevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-overview",
+    "text": "FIshing is a new game mode in Gigaverse. You play spells (cards) from your deck to hit and catch fish. Every successful catch results in an additional spell added to your deck for the day. \n\nHere's a community-made video guidearrow-up-right on how fishing works."
   },
   {
-    "id": "worldenv-chests-3",
-    "title": "Chests",
-    "section": "Juice Chest rewards",
-    "text": "Juice Chest contains Hexchain, Sapphire, and Soulmint (exclusive charm crafting materials). Keywords: juice chest, hexchain, sapphire, soulmint, charm crafting."
-  },
-
-  {
-    "id": "giga-juice-1",
-    "title": "Giga Juice",
-    "section": "What it is",
-    "text": "Giga Juice is a premium/boost system tied to extra access/benefits inside Gigaverse. Keywords: giga juice, boosts, benefits, access."
+    "id": "gb-7b25e41e",
+    "title": "Fishing Overview | gigaverse | GLHFersarrow-up-righthashtagcircle-checkhashtaghashtaghashtagarrow-up-righthashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagFishing Mechanic",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-overview",
+    "text": "The fishing area is a 3x3 grid. Fish swim to a different cell each turn, after you play a spell card.\n\nSpells (cards) have mana costs, hit locations, and damage indicators. Click the card with hit boxes that you predict the fish will travel to on the next turn. Successful “hits” will increase the catch meter, while a “miss” will decrease it. Fill the catch meter to catch a fish.\n\nHint: Fish have a variety of different patterns, use the first move to note the pattern.\n\nYou can also redraw your hand instead of casting a spell, which costs 1 mana per card left in your current hand. If you are out of mana before the catch meter fills, or the catch meter goes to zero, the fish escapes and your cast ends."
   },
   {
-    "id": "giga-juice-2",
-    "title": "Giga Juice",
-    "section": "Benefits",
-    "text": "Benefits can include exclusive access and gameplay advantages described in the Giga Juice section. Keywords: benefits, perks, premium, access."
+    "id": "gb-83161908",
+    "title": "Fishing Overview | gigaverse | GLHFersarrow-up-righthashtagcircle-checkhashtaghashtaghashtagarrow-up-righthashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagEntry Requirement",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-overview",
+    "text": "There are three levels of cast requiring scaling energy:\n\nSmall Cast 12 energy\n\nNormal Cast 16 energy\n\nBig Cast 20 energy"
   },
   {
-    "id": "giga-juice-3",
-    "title": "Giga Juice",
-    "section": "How to buy",
-    "text": "Giga Juice purchase info is documented in the 'How To Buy Giga Juice?' page. Keywords: buy, purchase, giga juice, instructions."
-  },
-
-  {
-    "id": "trading-1",
-    "title": "Gigamarket",
-    "section": "In-game trading overview",
-    "text": "Gigamarket is the in-game marketplace/trading hub where players can exchange items. Keywords: trade, marketplace, buy, sell, listings."
+    "id": "gb-18488d8",
+    "title": "Fishing Overview | gigaverse | GLHFersarrow-up-righthashtagcircle-checkhashtaghashtaghashtagarrow-up-righthashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagRewards",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-overview",
+    "text": "You can catch different types of fish having unique stats and rarities:\n\n🔢 Stats: Weight (WGT), Length (LNG) and Girth (GRT)\n\n⭐ Rarity: Common, Uncommon, Rare, Epic, Legendary, Relic, Giga\n\nHigher Rarity fish are worth more Seaweed at Tonnoarrow-up-right, the Fishing Vendor."
   },
   {
-    "id": "trading-2",
-    "title": "Traveling Merchants",
-    "section": "Merchants overview",
-    "text": "Traveling Merchants are special vendors/events that offer rotating items or deals. Keywords: merchant, vendor, traveling, rotation."
-  },
-
-  {
-    "id": "factions-1",
-    "title": "Factions",
-    "section": "What factions are",
-    "text": "Factions are a gameplay-aligned system with identity/progression and faction-specific activity. Related page: Faction Altar Room. Keywords: factions, allegiance, faction altar, progression."
+    "id": "gb-896ca207",
+    "title": "Fishing Overview | gigaverse | GLHFersarrow-up-righthashtagcircle-checkhashtaghashtaghashtagarrow-up-righthashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagDaily Limit",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-overview",
+    "text": "Normal: 10 casts per day\n\nJuiced Player: 20 casts per day\n\nThis is subject to change in the future\n\nLast updated 20 days ago"
   },
   {
-    "id": "factions-2",
-    "title": "Faction Altar Room",
-    "section": "Faction interaction",
-    "text": "Faction Altar Room relates to faction mechanics and how players interact with faction systems in-world. Keywords: altar room, faction room, choose faction, faction mechanics."
-  },
-
-  {
-    "id": "combat-1",
-    "title": "Dungetron Overview",
-    "section": "Combat loop",
-    "text": "Dungetron covers dungeon-style combat progression, rewards, and challenge flow. Keywords: dungeon, combat, dungetron, runs, rewards."
+    "id": "gb-aa288da6",
+    "title": "Crafting Overview | gigaverse | GLHFersarrow-up-righthashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/crafting-overview",
+    "text": "To progress further in Gigaverse and perform a variety of actions in game, you will need to craft items (or purchase crafted items from other players on the Gigamarketarrow-up-right). \n\nCrafting takes place at designated crafting stations. It requires materials/items and energy.\n\nAt present, there are two crafting stations in the game, the Alchemy Bench and the Workbench. You can equip crafted gear at the Gear Station.\n\nAlchemy Bench\n\nThis is where Consumables can be crafted\n\nWorkbench\n\nThis is where Gear can be crafted\n\nGear Station\n\nThis where were Gear can be equiped and repaired"
   },
   {
-    "id": "combat-2",
-    "title": "Echo Battles",
-    "section": "Battle type",
-    "text": "Echo Battles are a combat mode/event type within Gigaverse. Keywords: echo battles, combat mode, fights."
+    "id": "gb-ef4e33d7",
+    "title": "Crafting Overview | gigaverse | GLHFersarrow-up-righthashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "hashtag Alchemy XP",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/crafting-overview",
+    "text": "The more consumables you craft, the more Alchemy XP you receive. Alchemy XP is soulbound (cannot be transferred) and plays an important future role in your crafting progression & proficiency."
   },
   {
-    "id": "combat-3",
-    "title": "Combat Skill Points",
-    "section": "Progression",
-    "text": "Combat Skill Points are used to power up combat-related progression. Keywords: skill points, upgrades, combat tree."
-  },
-
-  {
-    "id": "fishing-1",
-    "title": "Fishing Overview",
-    "section": "Fishing loop",
-    "text": "Fishing is a major gathering/progression activity with fish discovery and skill progression. Keywords: fishing, rods, bait, fish, progression."
+    "id": "gb-e466e234",
+    "title": "Crafting Overview | gigaverse | GLHFersarrow-up-righthashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "hashtag Workbench XP",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/crafting-overview",
+    "text": "The more gear you craft, the more Workbench XP you receive. Workbench XP is soulbound (cannot be transferred) and plays an important future role in your crafting progression & proficiency.\n\nMore crafting stations will be added to the game over time, as well as more crafts.\n\nLast updated 20 days ago"
   },
   {
-    "id": "fishing-2",
-    "title": "Fishing Spells",
-    "section": "Spells",
-    "text": "Fishing spells provide special effects/boosts related to fishing. Keywords: spells, fishing boosts, effects."
+    "id": "gb-2d315e",
+    "title": "Conquest Overview | gigaverse | GLHFershashtaghashtaghashtagcircle-exclamationhashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagRequirement",
+    "url": "https://glhfers.gitbook.io/gigaverse/conquest/conquest-overview",
+    "text": "Players need Faction Stubs to play Conquest.\n\nThese are dropped by Echo Battles and by catching Fish. There may be more ways to get Faction Stubs in the future.\n\nEach Echo drops both player and Echo Faction Stubs, once defeated."
   },
   {
-    "id": "fishing-3",
-    "title": "Fishing Skill Points",
-    "section": "Fishing progression",
-    "text": "Fishing skill points upgrade fishing performance and unlock fishing improvements. Keywords: fishing skill points, upgrades, progression."
+    "id": "gb-ea3c071c",
+    "title": "Conquest Overview | gigaverse | GLHFershashtaghashtaghashtagcircle-exclamationhashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagGameplay",
+    "url": "https://glhfers.gitbook.io/gigaverse/conquest/conquest-overview",
+    "text": "- Use your own Faction Stubs to increase your control of a territory\n\nUse your own Faction Stubs to increase your control of a territory\n- Use opposing Faction Stubs to decrease their control of a territory\n\nUse opposing Faction Stubs to decrease their control of a territory\n\nFaction Stubs are burned when used; be strategic."
   },
   {
-    "id": "fishing-4",
-    "title": "Fishing Equipment",
-    "section": "Gear",
-    "text": "Fishing equipment includes tools/gear for better fishing outcomes. Keywords: equipment, rod, upgrades."
+    "id": "gb-f36de285",
+    "title": "Conquest Overview | gigaverse | GLHFershashtaghashtaghashtagcircle-exclamationhashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagCrowns",
+    "url": "https://glhfers.gitbook.io/gigaverse/conquest/conquest-overview",
+    "text": "Crowns are conquest rewards based on both individual contribution within a faction and the faction's performance relative to others\n- Calculated as follows:Crowns = Individual Contribution X Faction RankContribution = Player Stub Score / Total Faction Stub ScoreFaction Rank = 100x (last place) up to 700x (first place)\n\nCalculated as follows:\n- Crowns = Individual Contribution X Faction Rank\n\nCrowns = Individual Contribution X Faction Rank\n- Contribution = Player Stub Score / Total Faction Stub Score\n\nContribution = Player Stub Score / Total Faction Stub Score\n- Faction Rank = 100x (last place) up to 700x (first place)\n\nFaction Rank = 100x (last place) up to 700x (first place)\n- Stub score is the stubs you place on the map\n\nStub score is the stubs you place on the map\n- Stub score starts at 0 for each faction as you switch. If you switch back, it picks up from where you left off.\n\nStub score starts at 0 for each faction as you switch. If you switch back, it picks up from where you left off.\n- Crown Leaderboard shows both global rank & faction rank (similar to abstract stubs leaderboard system)\n\nCrown Leaderboard shows both global rank & faction rank (similar to abstract stubs leaderboard system)\n- Ranks can be seen in real-time (immediate past round)\n\nRanks can be seen in real-time (immediate past round)"
   },
   {
-    "id": "fishing-5",
-    "title": "Fish Findex",
-    "section": "Fish index",
-    "text": "Fish Findex is a catalog/index of fish and fishing discoveries. Keywords: findex, fish list, collection."
+    "id": "gb-d78bca60",
+    "title": "Gigaverse Giglings | gigaverse | GLHFershashtaghashtagchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-giglings",
+    "text": "Giglings is the pet collection of Gigaverse.\n\nThere will be several types of Giglings over time in Gigaverse.\n\nGiglings start as Eggs and go through a hatching process before they can be utilized.\n\nCurrently, there are two eggs types - Inaugural Egg & ROM Egg and one steed type - Inaugural Steed"
   },
   {
-    "id": "fishing-6",
-    "title": "Fish Stall",
-    "section": "Vendor",
-    "text": "Fish Stall is a fishing-related vendor/interaction point. Keywords: fish stall, vendor, sell fish."
-  },
-
-  {
-    "id": "crafting-1",
-    "title": "Crafting Overview",
-    "section": "Crafting basics",
-    "text": "Crafting converts materials into usable items, gear, and tools via stations (Workbench, Alchemy Bench, etc.). Keywords: crafting, recipes, materials, stations."
+    "id": "gb-9d4c6400",
+    "title": "Gigaverse Giglings | gigaverse | GLHFershashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagROM Eggs & Giglings",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-giglings",
+    "text": "Eggs were airdropped 1:1 to ROM holders based on ROM tiers (silver, gold, void, giga).\n\nEach ROM egg hatches into an Inaugural Steed and drops a ROMling. ROMlings are currently in skin form, so you can wear them or sell them for now, but will have later utility/use case.\n\nNot much is known about what ROMlings will do yet!\n\nLast updated 20 days ago"
   },
   {
-    "id": "crafting-2",
-    "title": "Workbench",
-    "section": "Core station",
-    "text": "Workbench is a main crafting station used for items like Hands (used to break pots). Keywords: workbench, hands, crafting station."
+    "id": "gb-1131813e",
+    "title": "Gigamarket | gigaverse | GLHFerscircle-checkcircle-checktriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/gigamarket",
+    "text": "The gigamarket is an integrated onchain marketplace / order book to allow for easy item trading between players in gigaverse. Within its first two weeks, gigamarket saw 250,000+ items traded.\n\nIt is in essence a one-stop shop to trade all your Gigaverse Game Items.\n\nFeatures:\n- Gamer friendly & familiar UI\n\nGamer friendly & familiar UI\n- Filter based on the type of item - Material, Consumable, Skin or Collectible\n\nFilter based on the type of item - Material, Consumable, Skin or Collectible\n- Realtime ETH <> USD value indicator\n\nRealtime ETH <> USD value indicator\n- Bulk buy or list\n\nBulk buy or list\n- List at floor price\n\nList at floor price\n- Abstract Global Wallet session system for ease of trades\n\nAbstract Global Wallet session system for ease of trades\n\nGigus Maximus monitors your trading behaviour on gigamarket.\n\nWhen using the gigamarket, be aware:\n- It may take some time for items you've purchased to arrive in your inventory.\n\nIt may take some time for items you've purchased to arrive in your inventory.\n\nHint: Use the Refresh button in your Inventory after any purchases.\n\nWarning: If your items disappear after refreshing, wait some time, and hit the refresh inventory button again until you see them.\n- Items may appear to arrive before they actually do since the front-end sometimes processes sales faster than the gigamarket listings are processed."
   },
   {
-    "id": "crafting-3",
-    "title": "Alchemy Bench",
-    "section": "Alchemy station",
-    "text": "Alchemy Bench is used for alchemy-related crafting. Keywords: alchemy, potions, bench."
+    "id": "gb-1131813f",
+    "title": "Gigamarket | gigaverse | GLHFerscircle-checkcircle-checktriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/gigamarket",
+    "text": "Items may appear to arrive before they actually do since the front-end sometimes processes sales faster than the gigamarket listings are processed.\n- If you are trying to make a purchase and see a transaction error in your Abstract Global Wallet, it's likely someone just purchased the item before you were able to complete your transaction. In this case, open and close the gigamarket tab. If you still get an error, refresh your browser and try again."
   },
   {
-    "id": "crafting-4",
-    "title": "Hatchery",
-    "section": "Hatching system",
-    "text": "Hatchery relates to egg/creature hatching mechanics. Keywords: hatchery, eggs, hatching."
+    "id": "gb-cff03c91",
+    "title": "Gigamarket | gigaverse | GLHFerscircle-checkcircle-checktriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/gigamarket",
+    "text": "If you are trying to make a purchase and see a transaction error in your Abstract Global Wallet, it's likely someone just purchased the item before you were able to complete your transaction. In this case, open and close the gigamarket tab. If you still get an error, refresh your browser and try again.\n\nLast updated 20 days ago"
   },
   {
-    "id": "crafting-5",
-    "title": "Gear Station",
-    "section": "Gear crafting",
-    "text": "Gear Station focuses on equipment/gear crafting and upgrades. Keywords: gear, equipment, crafting."
-  },
-
-  {
-    "id": "conquest-1",
-    "title": "Conquest Overview",
-    "section": "Conquest mode",
-    "text": "Conquest is a combat/progression mode focused on broader objectives. Keywords: conquest, mode, objectives, battles."
-  },
-
-  {
-    "id": "creators-1",
-    "title": "Giga Creators Program",
-    "section": "Builders",
-    "text": "Giga Creators Program covers creator/builder participation and ecosystem building. Keywords: creators, builders, program, contribute."
-  },
-
-  {
-    "id": "lore-gigus-1",
-    "title": "Gigus Maximus",
-    "section": "Lore",
-    "text": "Gigus Maximus is a key lore figure in Gigaverse. Keywords: gigus maximus, lore, story, character."
+    "id": "gb-1ce315fd",
+    "title": "Abstract XP | gigaverse | GLHFersarrow-up-rightarrow-up-rightcircle-checktriangle-exclamationtriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-xp",
+    "text": "Abstract XP is an incentive & engagement system from Abstractarrow-up-right, the chain Gigaverse is deployed on.\n\nXP can be earned in several ways on Abstract such as using apps, trading, minting, holding, etc.\n\nThe exact mechanism is not public and weightage-based allocations are dynamic each week.\n\nWithin Gigaverse, there are two main ways to earn Abstract XP\n- Active: Collect Abstract Stubs by playing the game, collecting items and selling them to the Travelling Merchant\n\nActive: Collect Abstract Stubs by playing the game, collecting items and selling them to the Travelling Merchant\n- Passive: Hold Gigaverse ROMs for Abstract XP. Generate even more Abstract Stubs by using Gigus Dustarrow-up-right to upgrade your ROM levels.\n\nPassive: Hold Gigaverse ROMs for Abstract XP. Generate even more Abstract Stubs by using Gigus Dustarrow-up-right to upgrade your ROM levels.\n\nIMPORTANT: Snapshot is taken every Friday at 12PM UTC.️ Abstract Stubs are burned & counted towards Abstract XP automatically at the time.\n\nAbstract Stubs do not roll over into next week.\n\nAbstract Stubs are not 1:1 Abstract Portal XP.\n\nLast updated 21 days ago"
   },
   {
-    "id": "lore-auctioneer-1",
-    "title": "Auctioneer",
-    "section": "Lore",
-    "text": "Auctioneer is a lore/special character connected to auctions and story. Keywords: auctioneer, auctions, lore."
+    "id": "gb-8a5e2da8",
+    "title": "Dungetron 5000: Normal | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagCombat Mechanic",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/dungetron-overview/dungetron-5000-normal",
+    "text": "At present, both you and your opponent have one of three available moves (Sword / Shield / Spell) to cast against each other. Each move counters another. Sword counters Spell, Spell counters Shield, and Shield counters Sword. Should your move beat that of your enemy, you will deal damage to them, as well as potentially repair your shield."
   },
   {
-    "id": "lore-tonno-cyclops-1",
-    "title": "Tonno & Cyclops",
-    "section": "Lore",
-    "text": "Tonno & Cyclops are lore/special characters in the Gigaverse world. Keywords: tonno, cyclops, lore."
+    "id": "gb-5e3bf093",
+    "title": "Dungetron 5000: Normal | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagRewards",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/dungetron-overview/dungetron-5000-normal",
+    "text": "By defeating enemies you will earn dungeon scrap (a soulbound item — meaning it can't be traded) that can be used to upgrade your skills, allowing you to become stronger and progress further in combat over time.\n\nIn addition to scrap, random rewards (in the form of items, materials, and skins) will drop when you defeat each enemy. These rewards increase in size & rarity as you progress through the dungeon."
   },
   {
-    "id": "lore-hugis-munis-1",
-    "title": "Hugis & Munis",
-    "section": "Lore",
-    "text": "Hugis & Munis are lore/special characters. Keywords: hugis, munis, lore."
-  },
-
-  {
-    "id": "general-fairplay-1",
-    "title": "Fair Play Rules",
-    "section": "Rules",
-    "text": "Fair Play Rules define acceptable behavior and gameplay integrity rules. Keywords: fair play, rules, cheating, abuse."
+    "id": "gb-a6c38638",
+    "title": "Dungetron 5000: Normal | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagFlee",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/dungetron-overview/dungetron-5000-normal",
+    "text": "You are able to flee the dungeon (end your run without dying, and keep any unused potions)\n\nTo Flee, approach the ladder and exit once you've defeated an enemy, and before progressing to the next room.\n\nIf you die, you will drop unused potions, but keep any loot you’ve obtained along the way."
   },
   {
-    "id": "general-links-1",
-    "title": "Links & Contracts",
-    "section": "Official links",
-    "text": "Links & Contracts page collects official links and contract references. Keywords: contracts, official links, verification."
+    "id": "gb-1cbdc8d",
+    "title": "Dungetron: Underhaul | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagRewards",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/dungetron-overview/dungetron-underhaul",
+    "text": "By defeating enemies you will earn gigashards (a soulbound item — meaning it can't be traded) that can be used to upgrade your skills, allowing you to become stronger and progress further in combat over time.\n\nIn addition, random rewards (in the form of items, materials, and skins) will drop when you defeat each enemy. These rewards increase in size & rarity as you progress through the dungeon."
+  },
+  {
+    "id": "gb-34d6d1ea",
+    "title": "Dungetron: Underhaul | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagFlee",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/dungetron-overview/dungetron-underhaul",
+    "text": "You are able to flee the dungeon (end your run without dying, and keep any unused potions) by approaching the ladder once you've defeated an enemy, and before progressing to the next room."
+  },
+  {
+    "id": "gb-eed07ead",
+    "title": "Echo Battles | gigaverse | GLHFerschevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/echo-battles",
+    "text": "Echoes are powerful enemies based on other player's stats.\n\nThey:\n- have a chance to appear in every room with levels close to yours\n\nhave a chance to appear in every room with levels close to yours\n- have exact hp & mana as the other player in that room\n\nhave exact hp & mana as the other player in that room\n- show other player name, level, faction & vanity skin\n\nshow other player name, level, faction & vanity skin\n- they can drop useful event items during specific competitions\n\nthey can drop useful event items during specific competitions\n\nBoth Dungetron 5000 and Dungetron Underhaul can spawn echoes.\n\nThey will only appear after reaching level 10 in each dungeon.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-3cd308f3",
+    "title": "Gigaverse Game Items | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-game-items",
+    "text": "Items can be earned and found throughout Gigaverse. Some items and pieces of gear cannot be found, and must instead be crafted. See Crafting Overview. Items have different rarities and uses: make sure you read their description to learn about what they can be used for. \n\nIt is not known what all items will be used for yet: some hold undisclosed future uses that players will discover in time. Something you think is useless today, may prove very useful tomorrow."
+  },
+  {
+    "id": "gb-949c7e5e",
+    "title": "Gigaverse Game Items | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagToken Specifications:",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-game-items",
+    "text": "- Blockchain - Abstract\n\nBlockchain - Abstract\n- Type - ERC-1155\n\nType - ERC-1155\n- Contract - 0x50A5eb2B3B289D4cFda0e307609b655175a275b1arrow-up-right\n\nContract - 0x50A5eb2B3B289D4cFda0e307609b655175a275b1arrow-up-right\n\nMaterial\n\nItems used for skill leveling and crafting\n\nSkin\n\nCosmetics used to distinguish yourself in Gigaverse\n\nCollectible\n\nMay or may not have special uses in-game\n\nConsumables\n\nItems used to provide boosts in combat\n\nGear\n\nItems with utility"
+  },
+  {
+    "id": "gb-8055fe8e",
+    "title": "Gigaverse Game Items | gigaverse | GLHFershashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagMarketplaces:",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-game-items",
+    "text": "- In-game Gigamarket (recommended for best experience)\n\nIn-game Gigamarket (recommended for best experience)\n- OpenSeaarrow-up-right (Abstract)\n\nOpenSeaarrow-up-right (Abstract)\n- MagicEdenarrow-up-right (Abstract)\n\nMagicEdenarrow-up-right (Abstract)\n\nItems in the Gigamarketarrow-up-right can be traded directly in-game. Abstract ETH in an Abstract Global Wallet can be used to purchase items, and Abstract ETH is also what you will receive directly to your wallet from sales.\n\nTo trade on OpenSea or MagicEden, or to send items to others onchain, you must visit the “Trade Port” tab in-game and export your items to the blockchain, which will incur an export fee + Abstract gas.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-c0d3d587",
+    "title": "Fish Stall | gigaverse | GLHFerschevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fish-stall",
+    "text": "Tonno is the main vendor for everything fishing related\n\nChat with Tonno at the Fishing Stall to:\n- Sell fish for Seaweed\n\nSell fish for Seaweed\n- Upgrade your Skills with seaweed\n\nUpgrade your Skills with seaweed\n- Search your Findex\n\nSearch your Findex\n- View your Fishing Equipment and Daily/Rod Spells\n\nView your Fishing Equipment and Daily/Rod Spells\n- Examine Catch Rates\n\nExamine Catch Rates\n- Check for ongoing Fishing Competitions\n\nCheck for ongoing Fishing Competitions\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-acf877a",
+    "title": "Combat Skill Points | gigaverse | GLHFerstriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/combat-skill-points",
+    "text": "In order to progress further in combat, you will need to level up your skills. Collect materials required to level up from the dungeons.\n\nThere are eight (8) skill types\n- Sword ATK & DEF\n\nSword ATK & DEF\n- Shield ATK & DEF\n\nShield ATK & DEF\n- Spell ATK & DEF\n\nSpell ATK & DEF\n- Max HP\n\nMax HP\n- Max AMR\n\nMax AMR\n\nThere are two primary upgrade systems:\n\nMaterial: Dungeon Scraps\n\nLevel up skills for Dungetron 5000\n\nDropped only in Dungetron 5000: Normal\n\nMaterial: Giga Shards\n\nLevel up skills for Dungetron: Underhaul\n\nDropped in Dungetron 5000: Normal and Underhaul\n\nNotes:\n- Scrap & Giga Shards are soulbound (meaning they cannot be sold or transferred).\n\nScrap & Giga Shards are soulbound (meaning they cannot be sold or transferred).\n- Giga Shards and Dungeon Scraps are not interchangeable.\n\nGiga Shards and Dungeon Scraps are not interchangeable.\n- It costs more & more materials to level up your skills as your level increases.\n\nIt costs more & more materials to level up your skills as your level increases.\n- Scrap can also be used to craft gear. See Workbench to learn more about crafting gear.\n\nScrap can also be used to craft gear. See Workbench to learn more about crafting gear.\n- As you reach higher individual skill levels, it will take more than 1 skill point to upgrade a skill to get the new level’s combat bonus"
+  },
+  {
+    "id": "gb-acf877b",
+    "title": "Combat Skill Points | gigaverse | GLHFerstriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/combat-skill-points",
+    "text": "As you reach higher individual skill levels, it will take more than 1 skill point to upgrade a skill to get the new level’s combat bonus\n- Each skill point applied will increase overall combat level by 1, with a max of 100\n\nEach skill point applied will increase overall combat level by 1, with a max of 100\n- You can respec by spending Temporal Hourglasses to return a skill point"
+  },
+  {
+    "id": "gb-c67bcd5",
+    "title": "Combat Skill Points | gigaverse | GLHFerstriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/combat/combat-skill-points",
+    "text": "You can respec by spending Temporal Hourglasses to return a skill point\n\nDowngrading a skill only returns 75% of the materials spent on that level\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-5974e824",
+    "title": "Fishing Spells | gigaverse | GLHFershashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-spells",
+    "text": "Spells (cards) are used to catch fish.\n\nYou receive a random deck daily and you can collect more Spells as you successfully catch fish.\n\nEach card has three main elements: Mana, Hit boxes & Hit multiplier"
+  },
+  {
+    "id": "gb-f77b9684",
+    "title": "Fishing Spells | gigaverse | GLHFershashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagHit Boxes",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-spells",
+    "text": "Indicate which space you predict the fish will move to next turn\n\nBlue indicators are normal hits.\n\nYellow indicators are critical hits.\n\nRed/Grey indicators are miss."
+  },
+  {
+    "id": "gb-84fd41ea",
+    "title": "Fishing Spells | gigaverse | GLHFershashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagHit Multipliers",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-spells",
+    "text": "Each number within the bottom boxes indicates the hit amount.\n\nThe hit and miss square values will increase or decrease the catch meter by that amount depending on where the fish lands.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-5931fc99",
+    "title": "Alchemy Bench | gigaverse | GLHFershashtagarrow-up-righthashtagtriangle-exclamationcircle-checkhashtagtriangle-exclamationhashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagWhat it does",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/alchemy-bench",
+    "text": "The Alchemy Bench allows you to create consumables to take into combat with you\n\nWarning: You lose your consumables upon death or use.\n\nHint: If you wish to flee the dungeon with your remaining consumables, click the ladder after defeating a boss, before selecting your next upgrade."
+  },
+  {
+    "id": "gb-28ba5976",
+    "title": "Alchemy Bench | gigaverse | GLHFershashtagarrow-up-righthashtagtriangle-exclamationcircle-checkhashtagtriangle-exclamationhashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagHow to Use",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/alchemy-bench",
+    "text": "Equip consumables in your “Dungeon Bag” in the Dungeon lobby before entering combat\n\nWarning: Your dungeon bag will automatically refill with available consumables of the type selected until you run out. Make sure to deselect consumables before entering a dungeon if you don’t want to lose them"
+  },
+  {
+    "id": "gb-6aee676b",
+    "title": "Alchemy Bench | gigaverse | GLHFershashtagarrow-up-righthashtagtriangle-exclamationcircle-checkhashtagtriangle-exclamationhashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagResource Requirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/alchemy-bench",
+    "text": "Each consumable requires different resources (ingredients) to craft. The requirements are displayed when clicking a consumable at the Alchemy Bench. Larger consumables require more resources to craft."
+  },
+  {
+    "id": "gb-2a7e16ee",
+    "title": "Alchemy Bench | gigaverse | GLHFershashtagarrow-up-righthashtagtriangle-exclamationcircle-checkhashtagtriangle-exclamationhashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagFaction Specific Resource Requirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/alchemy-bench",
+    "text": "Crafting consumables requires faction specific resources. For example, crafting boom juices requires one faction type of dust or shards, whereas crafting armor juices requires a different faction type of dust or shards."
+  },
+  {
+    "id": "gb-8d97bb48",
+    "title": "Alchemy Bench | gigaverse | GLHFershashtagarrow-up-righthashtagtriangle-exclamationcircle-checkhashtagtriangle-exclamationhashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagSuccess Rate",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/alchemy-bench",
+    "text": "Crafting consumables has a 70% chance of success. This means, during each crafting attempt you have a 70% chance of successfully creating the consumable, and a 30% chance that the craft will fail and you will lose your ingredients.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-11863e5",
+    "title": "Consumables | gigaverse | GLHFershashtagchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/alchemy-bench/consumables",
+    "text": "Consumables are one-time use potions that can be used in combat to help you progress further in the dungeon. They can be crafted at the Alchemy Bench, or purchased on the gigamarket. \n\nConsumables require faction-specific ingredients that are only produced by ROMs with those faction traits. So if you wish to craft all the various different consumables, it is beneficial to hold ROMs of each different faction type."
+  },
+  {
+    "id": "gb-f70e6e1",
+    "title": "Consumables | gigaverse | GLHFershashtagchevron-leftchevron-right",
+    "section": "hashtagHow does your faction affect recipe requirements?",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/alchemy-bench/consumables",
+    "text": "Depending on the faction you chose when you entered Gigaverse (Factions) you will have different material requirements for crafting consumables. This is by design.\n\nLast updated 21 days ago"
+  },
+  {
+    "id": "gb-614ed7de",
+    "title": "Workbench | gigaverse | GLHFershashtaghashtagarrow-up-righthashtaghashtagcircle-checkhashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagXP Requirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench",
+    "text": "Some starter gear requires Alchemy XP to craft (earned by crafting Consumables at the Alchemy Bench)\n\nMid-tier and High-tier gear requires Workbench XP to craft (earned by crafting Charms, Mid-tier Gear, and High-Tier Gear)\n\nHint: You can see the Workbench or Alchemy XP reward per craft on the middle right, while the XP cost to craft will be under the ingredients cost"
+  },
+  {
+    "id": "gb-9b418775",
+    "title": "Workbench | gigaverse | GLHFershashtaghashtagarrow-up-righthashtaghashtagcircle-checkhashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagFaction Specific Resource Requirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench",
+    "text": "Most gear does not require faction specific resources to craft. If it does, you will see this under the list of required ingredients."
+  },
+  {
+    "id": "gb-73c1b80f",
+    "title": "Workbench | gigaverse | GLHFershashtaghashtagarrow-up-righthashtaghashtagcircle-checkhashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagSuccess Rate",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench",
+    "text": "Crafting gear currently has a 100% chance of success. Future gear crafts may have a chance of failure.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-6da9f529",
+    "title": "Gear | gigaverse | GLHFerstriangle-exclamationhashtaghashtaghashtagcircle-infohashtagtriangle-exclamationarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/gear",
+    "text": "Gear is a system of equipment.\n\nThere are many types of Gear (Head, Body, Charms, Hands, Lures, Rods)\n\nVanity skins can be crafted into Gear at the Workbench, and equipped at the Gear Station.\n\nEach piece of Gear plays a different role and provides different utility. Head skins & body skins can be turned in to head gear & body gear which has stat points, giving you an advantage in combat.\n\nGear cannot be traded once crafted, only vanity (cosmetic skins) can"
+  },
+  {
+    "id": "gb-8b0cfb40",
+    "title": "Gear | gigaverse | GLHFerstriangle-exclamationhashtaghashtaghashtagcircle-infohashtagtriangle-exclamationarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "hashtagRarity",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/gear",
+    "text": "Gear exists in different levels. Higher rarity gear has increased stat points and/or more durability.\n\nUpon Crafting and Restoring Gear, you have a % chance of rolling common, uncommon, rare, or epic gear:\n\n(50%) Common\n\n(30%) Uncommon\n\n(15%) Rare\n\n(5%) Epic\n\nYou can preview the stats of each rarity tier in the Workbenchby clicking on a piece of gear and clicking the rarity circle with the percentages next to it."
+  },
+  {
+    "id": "gb-bdb35001",
+    "title": "Gear | gigaverse | GLHFerstriangle-exclamationhashtaghashtaghashtagcircle-infohashtagtriangle-exclamationarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "hashtagDurability",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/gear",
+    "text": "Gear degrades with use, until it breaks. Once broken, its stats / utility no longer work. It must be repaired using resources to restore it to its full capability."
+  },
+  {
+    "id": "gb-ab3cf3a3",
+    "title": "Gear | gigaverse | GLHFerstriangle-exclamationhashtaghashtaghashtagcircle-infohashtagtriangle-exclamationarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "hashtagRepairs",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/gear",
+    "text": "You can repair gear at the Gear Station for a cost.\n\nTo find the cost, go to the Gear Station, select a piece of gear, and above the “Repair” button you will see the cost.\n\nRepair Limit: Each piece of Gear has a repair limit.\n\nExample: Head and Body gear can be repaired 5 times, you will see a 0/5 upon first craft, moving up by 1 with each repair.\n\nOnce a repair limit is reached, the gear will no longer function and/or give stats."
+  },
+  {
+    "id": "gb-2aef90ea",
+    "title": "Gear | gigaverse | GLHFerstriangle-exclamationhashtaghashtaghashtagcircle-infohashtagtriangle-exclamationarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "hashtagRestoration",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/gear",
+    "text": "Some Gear, like Head & Body Gear, can be “Restored” with Gear Ember.\n\nRestoring Gear resets the repair limit to 0 so you can repair it again.\n\nRestoring Gear also re-rolls the rarity of that Gear.\n\nCharmsarrow-up-right, Handsarrow-up-right, Luresarrow-up-right, and Rodsarrow-up-right cannot be restored, only repaired to a max limit"
+  },
+  {
+    "id": "gb-33e5b051",
+    "title": "Gear | gigaverse | GLHFerstriangle-exclamationhashtaghashtaghashtagcircle-infohashtagtriangle-exclamationarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "hashtagGear Ember",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/gear",
+    "text": "Gear Ember used in Restoration comes from burning Head and Body Gear at the Gear Station.\n\nThe more advanced gear, typically from deeper levels of the dungeon, will cost more Gear Ember to restore, but grant more Gear Ember when burned.\n\nLast updated 1 month ago"
+  },
+  {
+    "id": "gb-5a414c8d",
+    "title": "Gear Station | gigaverse | GLHFershashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagWhat it does",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/gear-station",
+    "text": "Equip Gear: Players can equip gear they've crafted at the Workbench.\n\nRepair Gear: Players can restore gear durability. After all repairs are used, an additional cost will be required to reset repairs.\n\nNote: it is possible to equip both gear (which has stats) and skins (for vanity purposes). If no skins are equipped, your character's look will be based off the gear that is equipped. If you equip skins, the look of the skins will override the look of the gear.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-13bc1f47",
+    "title": "Benefits of Giga Juice | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtaghashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/giga-juice/benefits-of-giga-juice",
+    "text": "Giga Juice is an important in-game power-up that has several benefits as listed below. It can be purchased in 4 different durations: 7 days, 30 days, 90 days, or 180 days. It is more economical (i.e. cheaper on a daily basis) to purchase the longer subscriptions. Our most committed players stay juiced.\n\nCurrent benefits of Giga Juice:"
+  },
+  {
+    "id": "gb-1d0db365",
+    "title": "Benefits of Giga Juice | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtaghashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "hashtag Energy",
+    "url": "https://glhfers.gitbook.io/gigaverse/giga-juice/benefits-of-giga-juice",
+    "text": "- Increased daily limit -> 240 to 420\n\nIncreased daily limit -> 240 to 420\n- Faster regeneration -> 10/hour to 17.5/hour\n\nFaster regeneration -> 10/hour to 17.5/hour"
+  },
+  {
+    "id": "gb-7fb82f10",
+    "title": "Benefits of Giga Juice | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtaghashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "hashtag Giga Noob",
+    "url": "https://glhfers.gitbook.io/gigaverse/giga-juice/benefits-of-giga-juice",
+    "text": "- Extra potion slot -> 2 to 3\n\nExtra potion slot -> 2 to 3\n- Movement -> Walk to Sprint (press Shift)\n\nMovement -> Walk to Sprint (press Shift)"
+  },
+  {
+    "id": "gb-d259e94d",
+    "title": "Benefits of Giga Juice | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtaghashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "hashtag Dungeon",
+    "url": "https://glhfers.gitbook.io/gigaverse/giga-juice/benefits-of-giga-juice",
+    "text": "- High intensity runs -> 1x to 3x (energy cost and loot drops)\n\nHigh intensity runs -> 1x to 3x (energy cost and loot drops)\n- Extra upgrade option during runs -> 3 option to 4 options (50% chance)\n\nExtra upgrade option during runs -> 3 option to 4 options (50% chance)\n- Extra runs per dayDungetron 5000 -> 10/day to 12/day Dungetron Underhaul -> 8/day to 9/day\n\nExtra runs per day\n- Dungetron 5000 -> 10/day to 12/day\n\nDungetron 5000 -> 10/day to 12/day\n- Dungetron Underhaul -> 8/day to 9/day\n\nDungetron Underhaul -> 8/day to 9/day"
+  },
+  {
+    "id": "gb-8d107df7",
+    "title": "Benefits of Giga Juice | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtaghashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "hashtag Abstract Eco",
+    "url": "https://glhfers.gitbook.io/gigaverse/giga-juice/benefits-of-giga-juice",
+    "text": "- Bonus Abstract Stubs conversion rate at Traveling Merchant -> 1x to x4\n\nBonus Abstract Stubs conversion rate at Traveling Merchant -> 1x to x4"
+  },
+  {
+    "id": "gb-5a892ed5",
+    "title": "Benefits of Giga Juice | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtaghashtaghashtagcircle-checkchevron-leftchevron-right",
+    "section": "hashtagExtra Rewards",
+    "url": "https://glhfers.gitbook.io/gigaverse/giga-juice/benefits-of-giga-juice",
+    "text": "Extra Rewards can be part of Giga Juice purchase. These are not always available and will be explicitly mentioned at the Giga Juice Vending machine purchase section.\n\nExtra Rewards are occasional and often for limited time only.\n\nLast updated 5 months ago"
+  },
+  {
+    "id": "gb-282cc6f5",
+    "title": "Gigaverse ROMs | gigaverse | GLHFersarrow-up-righthashtagcircle-infohashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-roms",
+    "text": "Gigaverse ROMs are the key to unlocking the true power of the Gigaverse. To learn how we think about ROMs and their future role in our ecosystem, read this articlearrow-up-right. 🔍\n\nEach ROM functions as a resource factory within the Gigaverse ecosystem and maximizes your long term alignment with Gigaverse."
+  },
+  {
+    "id": "gb-7f17522b",
+    "title": "Gigaverse ROMs | gigaverse | GLHFersarrow-up-righthashtagcircle-infohashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagInitial Utility & Benefits:",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-roms",
+    "text": "- Players get more energy to perform more actions\n\nPlayers get more energy to perform more actions\n- Generate exclusive resources on an ongoing basis\n\nGenerate exclusive resources on an ongoing basis\n- Generates Abstract Stubs passively to grant more XP\n\nGenerates Abstract Stubs passively to grant more XP\n- Prioritized in future game updates & ecosystem rewards\n\nPrioritized in future game updates & ecosystem rewards\n- Rarity based scaling: Silver, Gold, Void, Giga tiers\n\nRarity based scaling: Silver, Gold, Void, Giga tiers\n\nGigus, the sentient AI creator of the gigaverse admires the ROMs."
+  },
+  {
+    "id": "gb-1530927b",
+    "title": "Gigaverse ROMs | gigaverse | GLHFersarrow-up-righthashtagcircle-infohashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagToken Specifications:",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-roms",
+    "text": "- Blockchain - Abstract\n\nBlockchain - Abstract\n- Type - ERC-721\n\nType - ERC-721\n- Total Supply - 10,000\n\nTotal Supply - 10,000\n- Tiers & Supply - Silver (5800), Gold (3200), Void (850), Giga (150)\n\nTiers & Supply - Silver (5800), Gold (3200), Void (850), Giga (150)\n- Contract - 0x59EEC556cEf447E13eDf4BfD3D4433d8daD8a7a5arrow-up-right\n\nContract - 0x59EEC556cEf447E13eDf4BfD3D4433d8daD8a7a5arrow-up-right"
+  },
+  {
+    "id": "gb-7e008a88",
+    "title": "Gigaverse ROMs | gigaverse | GLHFersarrow-up-righthashtagcircle-infohashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagTraits:",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-roms",
+    "text": "- Tier: Higher rarity tiers produce more resources\n\nTier: Higher rarity tiers produce more resources\n- Faction: Determines the faction resources that you can claim. Learn more here -> Factions\n\nFaction: Determines the faction resources that you can claim. Learn more here -> Factions\n- Memory: Larger memory produces more energy that you can claim\n\nMemory: Larger memory produces more energy that you can claim\n- Serial Number: It has not yet been revealed what serial numbers do\n\nSerial Number: It has not yet been revealed what serial numbers do\n- Stub Boost Level: Higher levels generate higher Abstract Stubs passively. Max level is 60.\n\nStub Boost Level: Higher levels generate higher Abstract Stubs passively. Max level is 60."
+  },
+  {
+    "id": "gb-793cf7ca",
+    "title": "Gigaverse ROMs | gigaverse | GLHFersarrow-up-righthashtagcircle-infohashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagROM Link",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-roms",
+    "text": "Link ROMs to increase resource production boost by 60% (both energy and materials).\n\nThis is stacked with the 20% production boost by Giga Juice resulting in a total of 80% boost.\n\nOnly 1:1 ROM linking is possible.\n\nThe ROM used to boost another ROM does not produce any resources. Both will still generate Abstract Stubs passively."
+  },
+  {
+    "id": "gb-94876e6c",
+    "title": "Gigaverse ROMs | gigaverse | GLHFersarrow-up-righthashtagcircle-infohashtagarrow-up-righthashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagROM Upgrades",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-roms",
+    "text": "ROMs can be upgraded from level 1 to level 60 to increase the passive Abstract Stubs generation up to 600%.\n\nGigus Dust is used to upgrade ROMs.\n\nThe energy produced by the ROMs can be converted into Gigus Dust."
+  },
+  {
+    "id": "gb-26376f16",
+    "title": "Gigaverse Character Names | gigaverse | GLHFershashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/gigaverse-character-names",
+    "text": "Gigaverse has a unique character name system wherein each name is minted as a tradable NFT.\n\nPlayers can mint one new name when creating a new account.\n\nThese Name NFTs can be transferred to existing accounts allowing players to change their display name in-game."
+  },
+  {
+    "id": "gb-309b5063",
+    "title": "Gigus Maximus | gigaverse | GLHFerschevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/lore-and-special-characters/gigus-maximus",
+    "text": "Gigus Maximus is the sentient AI creator of gigaverse. He is an agentic antagonist who forms, controls, and enriches several core game and story mechanics in the gigaverse. \n\nOver time he will also orchestrate a social layer and metagame for players. Though he will be highly entertaining and persuasive, his intentions will vary and you are advised to exercise caution.\n\nGigus watches the behaviours and performance of all players from the moment they enter the game. This includes: play consistency, play performance, item trading, and more.\n\nMore information about Gigus, his intentions and his mechanics shall be revealed over time."
+  },
+  {
+    "id": "gb-439c2ac",
+    "title": "How To Buy Giga Juice? | gigaverse | GLHFersarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/giga-juice/how-to-buy-giga-juice",
+    "text": "Giga Juice empowers players with a number of important benefitsarrow-up-right and is recommended for all players looking for the best way to play & experience Gigaverse.\n- Click on the Juice Vending machine located in the spawn area.\n\nClick on the Juice Vending machine located in the spawn area.\n- Select the duration of Giga Juice you'd like to purchase, and complete the checkout flow.\n\nSelect the duration of Giga Juice you'd like to purchase, and complete the checkout flow.\n- Once you are juiced, you will receive all the Benefits of Giga Juice.\n\nOnce you are juiced, you will receive all the Benefits of Giga Juice.\n\nLast updated 5 months ago"
+  },
+  {
+    "id": "gb-90790655",
+    "title": "Traveling Merchants | gigaverse | GLHFershashtaghashtagcircle-infohashtaghashtagcircle-checkhashtaghashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagHugis - The Traveling Merchant",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/traveling-merchants",
+    "text": "The Traveling Merchant Hugis is where you trade items for Abstract Stubs via Deals.\n\nYou can also view your Stub & Medal leaderboard standings at Hugis."
+  },
+  {
+    "id": "gb-c756b982",
+    "title": "Traveling Merchants | gigaverse | GLHFershashtaghashtagcircle-infohashtaghashtagcircle-checkhashtaghashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagShop",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/traveling-merchants",
+    "text": "Players can purchase exclusive Cosmetic drops, welcome packs, and maybe more in the future, via the Shop tab at Hugis.\n\nThere may not always be deals and some may be limited-time, check in often!"
+  },
+  {
+    "id": "gb-894255d6",
+    "title": "Traveling Merchants | gigaverse | GLHFershashtaghashtagcircle-infohashtaghashtagcircle-checkhashtaghashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagDeals",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/traveling-merchants",
+    "text": "Players can turn in in-game items to receive Abstract Stubs via the Deals tab.\n\nThere are two types of deals - Weekly & Daily\n\nJuiced players receive 4x the Abstract Stubs for each Trade completed at Hugis"
+  },
+  {
+    "id": "gb-97561fbf",
+    "title": "Traveling Merchants | gigaverse | GLHFershashtaghashtagcircle-infohashtaghashtagcircle-checkhashtaghashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagLeaderboard",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/traveling-merchants",
+    "text": "Players can check their global & faction standings via the Leaderboard tab.\n\nHint: Leaderboards last 7 days. Start: Friday 6pm UTC. End: Friday 6pm UTC.\n\nDepending on the standings at the time of reset, players win different tiers of medals from #1 up to #500 from Gold to Wood as follows:\n- 1st : 1x Gold\n\n1st : 1x Gold\n- 2nd : 5x Silver\n\n2nd : 5x Silver\n- 3rd : 3x Silver\n\n3rd : 3x Silver\n- 4 - 5 : 1x Silver\n\n4 - 5 : 1x Silver\n- 6 - 10 : 5x Copper\n\n6 - 10 : 5x Copper\n- 11 - 20 : 3x Copper\n\n11 - 20 : 3x Copper\n- 21 - 40 : 1x Copper\n\n21 - 40 : 1x Copper\n- 41 - 100 : 5x Wood\n\n41 - 100 : 5x Wood\n- 101 - 200 : 3x Wood\n\n101 - 200 : 3x Wood\n- 201 - 500 : 1x Wood\n\n201 - 500 : 1x Wood"
+  },
+  {
+    "id": "gb-a3a06db9",
+    "title": "Traveling Merchants | gigaverse | GLHFershashtaghashtagcircle-infohashtaghashtagcircle-checkhashtaghashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagMedals",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/traveling-merchants",
+    "text": "Four different types of medals are available - Gold, Silver, Copper Wood.\n\nThere are two leaderboards each giving their own medals:\n\nGlobal Leaderboard - Every player in the game\n\nFaction Specific Leaderboard - Every player in your character’s faction"
+  },
+  {
+    "id": "gb-bdc32aa",
+    "title": "Traveling Merchants | gigaverse | GLHFershashtaghashtagcircle-infohashtaghashtagcircle-checkhashtaghashtagcircle-infochevron-leftchevron-right",
+    "section": "hashtagMunis",
+    "url": "https://glhfers.gitbook.io/gigaverse/in-game-trading/traveling-merchants",
+    "text": "The Traveling Merchant Munis is a vendor in Gigaverse, providing exclusive deals for various items in exchange for Gigus Dust and Shards.\n\nHint: Some items are exclusive and available only for a limited time, while others are typically various resources from different areas of the game.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-156b5df8",
+    "title": "Abstract Stubs | gigaverse | GLHFersarrow-up-rightcircle-checkcircle-exclamationhashtagcircle-infohashtagtriangle-exclamationarrow-up-rightcircle-exclamationhashtagchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-stubs",
+    "text": "Abstract Stubs is the points system to calculate an Abstract users weekly Abstract XP share for specific activities in the Gigaverse\n\nWeeks start Friday at 6pm UTC (reset time) and end the following Friday at reset.\n\nCollected Abs Stubs are burned Friday, and applied to the following Tuesday’s Abstract XP drop (abs.xyz/rewardsarrow-up-right)\n\nCompete for weekly Abstract XP by collecting Stubs\n\nPlayers can earn Stubs in the following ways\n- Trade in items with the Traveling Merchant Hugis & Munis; two types of trade deals - Weekly & Daily\n\nTrade in items with the Traveling Merchant Hugis & Munis; two types of trade deals - Weekly & Daily\n- Hold Gigaverse ROMs\n\nHold Gigaverse ROMs\n- Buy Giga Juice to get 4x more stubs per deal when trading Hugis\n\nBuy Giga Juice to get 4x more stubs per deal when trading Hugis\n\nThere may be more ways to earn Stubs in the future"
+  },
+  {
+    "id": "gb-423e2cc0",
+    "title": "Abstract Stubs | gigaverse | GLHFersarrow-up-rightcircle-checkcircle-exclamationhashtagcircle-infohashtagtriangle-exclamationarrow-up-rightcircle-exclamationhashtagchevron-leftchevron-right",
+    "section": "hashtagTraveling Merchant Hugis & Munis",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-stubs",
+    "text": "The traveling merchant offers Daily & Weekly trade deals, where you can trade in items to receive Abstract Stubs in exchange.\n\nEach deal has a maximum turn in amount.\n\nExample: 0/4 means you can do that specific deal 4 times that day or week"
+  },
+  {
+    "id": "gb-7c3e705b",
+    "title": "Abstract Stubs | gigaverse | GLHFersarrow-up-rightcircle-checkcircle-exclamationhashtagcircle-infohashtagtriangle-exclamationarrow-up-rightcircle-exclamationhashtagchevron-leftchevron-right",
+    "section": "hashtagGigaverse ROMs Gigaverse ROMs",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-stubs",
+    "text": "ROM holders passively earn Stubs every week.\n\nThey are claimed automatically and will reflect in your Abstract XP\n\nStubs produced by ROMs do not effect/show up in the Stubs Leaderboard\n\nROMs can be upgraded from Level 1-60 to increase passive Stubs generation. Learn more in Gigaverse ROMsarrow-up-right\n\nMust be holding Gigaverse ROM(s) at the time of the weekly snapshot"
+  },
+  {
+    "id": "gb-37ae5502",
+    "title": "Abstract Stubs | gigaverse | GLHFersarrow-up-rightcircle-checkcircle-exclamationhashtagcircle-infohashtagtriangle-exclamationarrow-up-rightcircle-exclamationhashtagchevron-leftchevron-right",
+    "section": "hashtagGiga Juice How To Buy Giga Juice?",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-stubs",
+    "text": "Giga Juice provides benefits to those looking to increase their weekly Abstract Stubs:\n\n-Receive 4x stubs for deals you make with Hugis\n\n-More energy and more dungeon runs to earn items + more fishing casts\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-6b6331a",
+    "title": "Fish Findex | gigaverse | GLHFershashtaghashtagcircle-checkcircle-checkchevron-leftchevron-right",
+    "section": "hashtagFindex",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fish-findex",
+    "text": "Records of your fishing career.\n\nShows how many fish you’ve caught of each type, including higher quality fish of that type\n\nShows your personal best weight, length, and girth of each fish type caught\n\nOnce you catch a fish, it will appear in the Findex along with its unique stats and rarity."
+  },
+  {
+    "id": "gb-c5b5b527",
+    "title": "Fish Findex | gigaverse | GLHFershashtaghashtagcircle-checkcircle-checkchevron-leftchevron-right",
+    "section": "hashtagQuality and Mastery Stars",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fish-findex",
+    "text": "Each fish has a quality level, starting at 1-Star\n\nUpon catching a 2-Star or higher fish, earn 40-60% bonus seaweed of that fish’s base sell value instantly per star past 1\n\nHint: You can encounter higher quality fish starting at lvl 10 fishing, or by upgrading the Taste skill\n\nTo complete a Mastery Star for a Fish, you need to catch 10 fish of that quality\n\nFor example: Catch ten 1-Star Glub Glubs to get the 1st Glub Glub Mastery Star. For the 2nd Mastery Star, you would need to catch ten 2-Star Glub Glubs.\n\nMastery Stars are currently only for collecting/record purposes\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-dd0dd7bf",
+    "title": "Fishing Skill Points | gigaverse | GLHFershashtaghashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagSkills",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-skill-points",
+    "text": "In order to master fishing, you will need to level up your skills. Seaweed acquired by selling fish is required to level up.\n\nThere are eight (8) skill types\n- Stamana: Increase starting mana\n\nStamana: Increase starting mana\n- Rod Control: Increase chance of critical cast\n\nRod Control: Increase chance of critical cast\n- Jebaitor: Increase chance to not consume bait on cast (extra casts will still take energy)\n\nJebaitor: Increase chance to not consume bait on cast (extra casts will still take energy)\n- Weed Dealer: Increase selling value of each fish in the shop\n\nWeed Dealer: Increase selling value of each fish in the shop\n- Taste: Increase chance to +1 quality of the fish\n\nTaste: Increase chance to +1 quality of the fish\n- Luck: Increase chance to +1 rarity of the fish\n\nLuck: Increase chance to +1 rarity of the fish\n- Fintuition: Increase chance of revealing next fish move\n\nFintuition: Increase chance of revealing next fish move\n- Dual Yielding: Increase chance of catching 2 fish on 1 cast\n\nDual Yielding: Increase chance of catching 2 fish on 1 cast"
+  },
+  {
+    "id": "gb-b566f115",
+    "title": "Fishing Skill Points | gigaverse | GLHFershashtaghashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagSkill Respec",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-skill-points",
+    "text": "You can reassign skill points by downgrading.\n\nEach downgrade requires 4 Hourglass and refunds only 75% of the Seaweed.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-e9412bcc",
+    "title": "Factions | gigaverse | GLHFersarrow-up-rightarrow-up-rightarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/factions/factions",
+    "text": "There are 8 factions in gigaverse:\n\nArchon\n\nAthena\n\nChobo\n\nCrusader\n\nFoxglove\n\nOverseer\n\nSummoner\n\nGigus\n\nThese factions relate to the 7 Masters of the Gigaverse (Special Characters in the GLHFerscollection), and to Gigus, the sentient AI creator of Gigaverse.\n\nWhen starting the game, align with one of the factions belonging to the 7 “Masters of the Gigaverse”.\n\nYour choice may impact certain aspects of the game, such as the resources you require to craft consumablesarrow-up-right or which Faction Leaderboardarrow-up-right you are competing on\n\nYou can change your in-game faction via Faction Altar Roomarrow-up-right using in-game materials.\n\nMore details about factions and their role within the future of Gigaverse shall be revealed over time.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-2e365de2",
+    "title": "Pots | gigaverse | GLHFerschevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/world-environment/pots",
+    "text": "Pots contain a variety of utility items.\n\nCurrently, there are two types of Pots - Blue and Brown\n\nYou need 5 Energy and Hands (crafted in Workbench) to break pots.\n\nBlue pots can be broken with Paper Hands.\n\nMay contain: Giga Shards, Dungeon Scrap, Wood, Stone, Glass Orb (Rare)\n\nBrown pots can be broken with Rock Hands.\n\nMay contain: May contain Giga Shards, Dungeon Scrap, Stone, Wood, Bone, Fiber, Blank Tomes, Small or Medium consumables, or Ruby Key (Epic)\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-522391fe",
+    "title": "Fishing Equipment | gigaverse | GLHFershashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagTypes Of Rods",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-equipment",
+    "text": "Currently, there are three Rods you can craft\n- Wood (Common) - Repairable 1 time\n\nWood (Common) - Repairable 1 time\n- Stone (Uncommon) - Repairable 1 time\n\nStone (Uncommon) - Repairable 1 time\n- Phin's Rod (Epic) - Repairable 2 times\n\nPhin's Rod (Epic) - Repairable 2 times"
+  },
+  {
+    "id": "gb-8b11f688",
+    "title": "Fishing Equipment | gigaverse | GLHFershashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagLures",
+    "url": "https://glhfers.gitbook.io/gigaverse/fishing/fishing-equipment",
+    "text": "Lures are equipment that provide bonuses to fishing skills\n\nCurrently, there are two types of lures:\n- Pengu Lure: Increases your chance of triggering Dual Yielding upon catching a fish (2x fish)\n\nPengu Lure: Increases your chance of triggering Dual Yielding upon catching a fish (2x fish)\n- Chimpu Lure: Increases your chance of triggering Jebait upon casting and Fintuition upon playing spells\n\nChimpu Lure: Increases your chance of triggering Jebait upon casting and Fintuition upon playing spells\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-ad35d5c",
+    "title": "Charms | gigaverse | GLHFershashtaghashtaghashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/charms",
+    "text": "Charms can be crafted at the Workbench, and equipped at the Gear Station.\n\nCharms have different roles and bonuses. Orbs & Necklaces can be crafted into Charms which have special effects, giving you an advantage in combat."
+  },
+  {
+    "id": "gb-45f08073",
+    "title": "Charms | gigaverse | GLHFershashtaghashtaghashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagRarity",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/charms",
+    "text": "Higher rarity Charms have better durability and may have stronger effects\n\nCharms get a random rarity upon craft, based on the odds below:\n\n(50%) Common\n\n(30%) Uncommon\n\n(15%) Rare\n\n(5%) Epic"
+  },
+  {
+    "id": "gb-a41b03b4",
+    "title": "Charms | gigaverse | GLHFershashtaghashtaghashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagDurability",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/charms",
+    "text": "Charms degrade with each Dungetron run until their durability is 0. Once broken, charm effects no longer work. They must be repaired using resources at the Gear Station to begin functioning again."
+  },
+  {
+    "id": "gb-4cca14d0",
+    "title": "Charms | gigaverse | GLHFershashtaghashtaghashtagtriangle-exclamationchevron-leftchevron-right",
+    "section": "hashtagRepairs",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/charms",
+    "text": "You can repair Charms at the Gear Station for a cost.\n\nWARNING: Current Charms can only be repaired two times before permanently breaking. They cannot be restored like head & body gear.\n\nLast updated 9 days ago"
+  },
+  {
+    "id": "gb-1c240562",
+    "title": "Hatchery | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagHatching Process",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/hatchery",
+    "text": "Egg hatching is a delicate process and to achieve the best possible outcome (a high-quality hatch at the fastest speed), you'll need to maximize the temperature AND the comfort of each egg.\n\nMultiple eggs can be hatched at once, but make sure you have enough materials to sustain their comfort and temperature all throughout the hatching process!\n\nFeeding eggs with different faction resources influences the faction that the gigling will belong to, when hatched."
+  },
+  {
+    "id": "gb-41200e36",
+    "title": "Hatchery | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagResource Requirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/hatchery",
+    "text": "Hatching an egg requires hatching materials and faction dust (optional).\n\nTwo types of hatching materials - Biofuels and Incube. All of the materials are soul-bound to the player.\n\nThey can be acquired by trading base materials that can be found in the dungeon."
+  },
+  {
+    "id": "gb-e15400a5",
+    "title": "Hatchery | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagFaction Specific Resource Requirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/hatchery",
+    "text": "Faction dust can be added to the hatching process to provide the pet faction affinity.\n\nEach input of Faction dust increases the Fate by 4.75% for that Faction + 0.25% of Gigus Faction . Multiple can be used.\n\nStarted from 5 Dust up to 25 Dust for a total of 20x influence, providng 95% Faction chance and 5% Gigus Faction chance."
+  },
+  {
+    "id": "gb-d98b9357",
+    "title": "Hatchery | gigaverse | GLHFershashtaghashtaghashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagProgress (Temperature) AND Quality (Comfort)",
+    "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/hatchery",
+    "text": "Progress is directly influenced by the Temperature while Quality is influenced by both Comfort and Progress.\n\nCheck the following matrix to understand the relation between the factors.\n\nLast updated 2 months ago"
+  },
+  {
+    "id": "gb-50e4fca4",
+    "title": "GLHFers | gigaverse | GLHFershashtagarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagIntroduction",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/glhfers",
+    "text": "GLHFers are the genesis PFP collection of GLHF, the game studio building gigaverse. They are a deflationary ERC-721 NFT collection on Ethereum Mainnet and are regarded as \"THE crypto gaming PFP\" by the community. \n\nThe collection launched in January 2024 and minted at a price of 0.0369 ETH per NFT. The mint of GLHFers used a novel approach to WL curation — \"programmatic whitelistingarrow-up-right\" via the Adjutant bot, which was also built by GLHF.\n\nThe original supply of the collection was 3,690 NFTs, with only 3,154 being available via the general mint, and the final 150 tokens reserved as Special Characters (1/1s) to be slowly auctioned over time by the Auctioneer. Learn more about him here: Auctioneer."
+  },
+  {
+    "id": "gb-6b81d087",
+    "title": "GLHFers | gigaverse | GLHFershashtagarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagInspiration",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/glhfers",
+    "text": "GLHFers is a nostalgia-infused collection inspired by the golden age of gaming: the 1990s. The collection was created by Gigaverse's lead artist, Bunyoo, who paid homage to the games we know & love from our childhoods through the overall style of the collection and character traits."
+  },
+  {
+    "id": "gb-8f3f5660",
+    "title": "GLHFers | gigaverse | GLHFershashtagarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagSpecial Characters (1/1s)",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/glhfers",
+    "text": "The GLHFers collection contains a total of 200 Special Characters (1/1s). Their status as Special Characters is reflected in the collection metadata. \n\nWhen Special Characters are auctioned by the Auctioneer, they are often done so with some sort of unique auction mechanic, or other utility or benefit that he specifies at the time. \n\nThe most recent set of auctions, the Masters of the Gigaverse, function as Skin Factoriesarrow-up-right within Gigaverse, providing the owners of these NFTs with unique skins dripped out to them on a weekly basis. \n\nIn the future, a very select, small number of Special Characters will be obtainable as competition prizes & special rewards for elite accomplishments within Gigaverse. \n\nThe long term function of the Special Characters and why they exist has not yet been revealed."
+  },
+  {
+    "id": "gb-3ea17473",
+    "title": "GLHFers | gigaverse | GLHFershashtagarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagAuctions",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/glhfers",
+    "text": "Auctions are carried out on the GLHFers official website (https://www.glhfers.com/arrow-up-right) and are always announced in advance. There will never be any surprise mints or auctions for the GLHFers collection. \n\nAuctions are announced by the Auctioneer. In the past, they have run for 24 hours and bids are made in ETH. If a bidder is outbid, their ETH is returned to them immediately. \n\nYou can see previous auctions herearrow-up-right and the bids that were made on them herearrow-up-right."
+  },
+  {
+    "id": "gb-2b92c964",
+    "title": "GLHFers | gigaverse | GLHFershashtagarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightarrow-up-rightarrow-up-righthashtaghashtagarrow-up-righthashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagDeflationary Mechanic",
+    "url": "https://glhfers.gitbook.io/gigaverse/nft-collections/glhfers",
+    "text": "The GLHFers collection is deflationary because the Auctioneer uses funds he raises from auctions to sweep & burn the floor of the collection. To date, he has burned 420 GLHFers from the collection, forever removing them from the supply."
+  },
+  {
+    "id": "gb-da3adc67",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "The Giga Creators Program is designed to support and reward individuals who create original content about Gigaverse.\n\nGigaverse is a newly launched game and as such, we are constantly updating this program based on feedback and experience. We encourage all creators (whether you participate in the Program or not) to share your feedback with us as we look to improve the Program continuously over time!"
+  },
+  {
+    "id": "gb-5d638ad",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagWho can join",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "Anyone passionate about Gigaverse who creates content in various formats, including:\n- Gameplay Videos (Walkthroughs, Let's Plays, Reviews, etc.)\n\nGameplay Videos (Walkthroughs, Let's Plays, Reviews, etc.)\n- Guides & Tutorials (Beginner’s Guide, Crafting, PVP Strategies, etc.)\n\nGuides & Tutorials (Beginner’s Guide, Crafting, PVP Strategies, etc.)\n- Educational Content (Blockchain gaming, On-chain economy in Gigaverse, etc.)\n\nEducational Content (Blockchain gaming, On-chain economy in Gigaverse, etc.)\n- Information & News (Updates, Patch Notes, Event Coverage, etc.)\n\nInformation & News (Updates, Patch Notes, Event Coverage, etc.)\n- Graphics (Fan Art, GIFs, Comics, Infographics, etc)\n\nGraphics (Fan Art, GIFs, Comics, Infographics, etc)\n- Memes (All media types)\n\nMemes (All media types)"
+  },
+  {
+    "id": "gb-d94ad298",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagRequirements",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "- Content must be original and Gigaverse exclusive (Not 3rd party apps/tools unless official partners).\n\nContent must be original and Gigaverse exclusive (Not 3rd party apps/tools unless official partners).\n- Must be posted on social media (Twitter, TikTok, YouTube, Instagram, etc.).\n\nMust be posted on social media (Twitter, TikTok, YouTube, Instagram, etc.).\n- If you wish to get engagement on content published outside X, then the link must be posted on X, tagging our official account - @playgigaverse.\n\nIf you wish to get engagement on content published outside X, then the link must be posted on X, tagging our official account - @playgigaverse.\n- Maintain a consistent posting schedule (2 quality pieces minimum per month).\n\nMaintain a consistent posting schedule (2 quality pieces minimum per month).\n- Vote on peer content each month..\n\nVote on peer content each month.."
+  },
+  {
+    "id": "gb-ea94eea8",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagEvaluation Metrics",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "Creators will be assessed based on:\n- Relevance (Gigaverse only content)\n\nRelevance (Gigaverse only content)\n- Quality (Originality, Insightfulness, Call To Action, Uniqueness)\n\nQuality (Originality, Insightfulness, Call To Action, Uniqueness)\n- Engagement (Likes, Reshares and Meaningful Comments)\n\nEngagement (Likes, Reshares and Meaningful Comments)\n- Reach (Views / Impressions to engagement ratio)\n\nReach (Views / Impressions to engagement ratio)\n- Consistency (No. of relevant content per week/month)\n\nConsistency (No. of relevant content per week/month)"
+  },
+  {
+    "id": "gb-3fdf34a6",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagRewards",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "Rewards have been designed for creators that meet the criteria on a monthly basis. The following system is designed to motivate consistent output with fun surprises"
+  },
+  {
+    "id": "gb-1c453918",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtag🏅 Rewards",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "All qualifying content receive:\n- GigaUtility Bag: Consumables, gear or crafting materials\n\nGigaUtility Bag: Consumables, gear or crafting materials\n- GigaFlex Bag: Guaranteed 1x Unique Cosmetic only for official creators\n\nGigaFlex Bag: Guaranteed 1x Unique Cosmetic only for official creators\n- Giga Creator SBT: 1x unique SBT every month used to track, reward, allocate, etc. in the future\n\nGiga Creator SBT: 1x unique SBT every month used to track, reward, allocate, etc. in the future\n- Partnership IP skin: Contingent on Content around the partner & IP\n\nPartnership IP skin: Contingent on Content around the partner & IP\n- Engagement via official social media account on X & other platform where possible\n\nEngagement via official social media account on X & other platform where possible\n- Special role & exclusive channel on Discord (with WL raffle boost)\n\nSpecial role & exclusive channel on Discord (with WL raffle boost)\n- Monthly creators’ roundup thread\n\nMonthly creators’ roundup thread\n\nTop ~40% quality content, as voted by other Giga Creators (peer voting system) receive:\n- $50 USDC each\n\n$50 USDC each"
+  },
+  {
+    "id": "gb-c61e332",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtag🏅 Quarterly Rewards (every 3 months)",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "All consistent & qualifying creators with SBT tier 3, 6, etc. receive:\n- ETHOS review & Twitter spotlight\n\nETHOS review & Twitter spotlight\n- Opportunity to level up to Ambassadorship\n\nOpportunity to level up to Ambassadorship\n\nTop 2 performing creators receive:\n- 1x GLHFer\n\n1x GLHFer\n- 1x ROM NFT\n\n1x ROM NFT\n- 1x ETHOS vouch\n\n1x ETHOS vouch"
+  },
+  {
+    "id": "gb-c412d74a",
+    "title": "Giga Creators Program | gigaverse | GLHFerscircle-infohashtaghashtaghashtaghashtaghashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagHow to apply",
+    "url": "https://glhfers.gitbook.io/gigaverse/creators-and-builders/giga-creators-program",
+    "text": "Reach out to Aiz (X @Aizcaliburarrow-up-right) to receive the GigaCreators Application Form\n\nEmpowering Creators, Amplifying the Gigaverse Experience!\n\nLet’s build Gigaverse together, one pixel at a time!\n\nLast updated 5 months ago"
+  },
+  {
+    "id": "gb-c7162864",
+    "title": "Auctioneer | gigaverse | GLHFershashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/lore-and-special-characters/auctioneer",
+    "text": "The Auctioneer began his life executing the auctions for Special Characters - 1/1 GLHFers. He has so far, conducted 27 auctions, raising in excess of 100 ETH. \n\nYou can now find him in Gigaverse, where he is currently staffing the Gigamarket."
+  },
+  {
+    "id": "gb-873542cb",
+    "title": "Auctioneer | gigaverse | GLHFershashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagCorruption",
+    "url": "https://glhfers.gitbook.io/gigaverse/lore-and-special-characters/auctioneer",
+    "text": "The Auctioneer became corrupted by The Devil, the second Special Character that he auctioned. This corruption causes him to behave erratically."
+  },
+  {
+    "id": "gb-a96c4f28",
+    "title": "Auctioneer | gigaverse | GLHFershashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagSweep & Burn",
+    "url": "https://glhfers.gitbook.io/gigaverse/lore-and-special-characters/auctioneer",
+    "text": "The Auctioneer's erratic behaviour includes an obssession with using auction proceeds to sweep & burn the floor of the GLHFers collection. So far he has swept & burned 300 NFTs, almost 10% of the collection's supply."
+  },
+  {
+    "id": "gb-3c3dec41",
+    "title": "Auctioneer | gigaverse | GLHFershashtaghashtaghashtagarrow-up-rightchevron-leftchevron-right",
+    "section": "hashtagFuture Auctions",
+    "url": "https://glhfers.gitbook.io/gigaverse/lore-and-special-characters/auctioneer",
+    "text": "There are over 100 remaining auctions for 1/1 GLHFers. These will happen very slowly over time. No date has been scheduled for the next batch of auctions. \n\nAside from the remaining supply of GLHFers, it is possible that in the future the Auctioneer will play a role in the future of the Gigaverse economy.\n\nContract: https://etherscan.io/address/0xb928bF7aC9fE904DbA6069A11ADC59ACEED9cBa7#codearrow-up-right"
+  },
+  {
+    "id": "gb-dc34410a",
+    "title": "Hugis & Munis | gigaverse | GLHFersarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/hugis-and-munis",
+    "text": "Brothers Hugis and Munis are mysterious Traveling Merchantsarrow-up-right\n\nChat with them to find out more of their backstory.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-27e0dd22",
+    "title": "Abstract Badge: Giga Noob | gigaverse | GLHFerstriangle-exclamationhashtagarrow-up-rightcircle-infohashtagarrow-up-rightcircle-checkchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-badge-giga-noob",
+    "text": "LIMITED TIME BADGE - NO LONGER POSSIBLE TO ACQUIRE.\n\n\"Gigaverse Giga Chad\" was a flash badge for a limited time only, from 18th Feb 2025 till 24th Feb 2025."
+  },
+  {
+    "id": "gb-81b3ac27",
+    "title": "Abstract Badge: Giga Noob | gigaverse | GLHFerstriangle-exclamationhashtagarrow-up-rightcircle-infohashtagarrow-up-rightcircle-checkchevron-leftchevron-right",
+    "section": "hashtagStep-by-step guide ⬇️",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-badge-giga-noob",
+    "text": "STEP 1: Go to gigaverse.ioarrow-up-right, click the {Connect} button and sign in with Abstract Global Wallet (AGW).\n\nSTEP 2: Enter a username and click on {Claim Noob 0.005 ETH}."
+  },
+  {
+    "id": "gb-10788235",
+    "title": "Abstract Badge: Giga Noob | gigaverse | GLHFerstriangle-exclamationhashtagarrow-up-rightcircle-infohashtagarrow-up-rightcircle-checkchevron-leftchevron-right",
+    "section": "hashtagYou must have 0.005 ETH in your wallet in order to mint your noob and enter the game. If you need to bridge funds to your Abstract wallet, you can use the Abstract Portalarrow-up-right to do so.",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-badge-giga-noob",
+    "text": "STEP 3: Head over to the rewards section on Abstract to claim the flash badge.\n\nThat's it! Soon after your purchase is complete, you'll be granted the Giga Chad badge on Abstract\n\nLast updated 5 months ago"
+  },
+  {
+    "id": "gb-985dd0a4",
+    "title": "Faction Altar Room | gigaverse | GLHFerscircle-infohashtagarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/factions/faction-altar-room",
+    "text": "In the faction altar room, players can switch their in-game character factions for a cost.\n\nLearn more about the Faction lore on the Factions page."
+  },
+  {
+    "id": "gb-6446cf16",
+    "title": "Faction Altar Room | gigaverse | GLHFerscircle-infohashtagarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "hashtagWhy change factions?",
+    "url": "https://glhfers.gitbook.io/gigaverse/factions/faction-altar-room",
+    "text": "There can be many reasons to change factions such as\n- Alignment with your friends.\n\nAlignment with your friends.\n- Specific recipe set; as they change based on in-game faction. Learn more: Consumablesarrow-up-right\n\nSpecific recipe set; as they change based on in-game faction. Learn more: Consumablesarrow-up-right\n- Joining a less competitive Leaderboardarrow-up-right to make it easier to climb for medals\n\nJoining a less competitive Leaderboardarrow-up-right to make it easier to climb for medals"
+  },
+  {
+    "id": "gb-6cdec66",
+    "title": "Faction Altar Room | gigaverse | GLHFerscircle-infohashtagarrow-up-rightarrow-up-righthashtagchevron-leftchevron-right",
+    "section": "hashtagCost of switching factions",
+    "url": "https://glhfers.gitbook.io/gigaverse/factions/faction-altar-room",
+    "text": "To switch factions, you need various items depending on how active/populated a faction is, you may need: Transfusers, Dung & Butterflies of certain factions, Dust or Shards of certain factions, and potentially different items in the future.\n\nThe resource cost shifts up or down based on active faction members\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-89b15951",
+    "title": "Chests | gigaverse | GLHFershashtaghashtagchevron-leftchevron-right",
+    "section": "hashtag Normal Chest",
+    "url": "https://glhfers.gitbook.io/gigaverse/world-environment/chests",
+    "text": "😎 Available for all players (juiced or not juiced).\n\n🗺️ Bottom of the map, on the right side of the fishing area.\n\n⏲️ Can be claimed once per week.\n\n💎 Contains common crafting materials."
+  },
+  {
+    "id": "gb-a37a37cf",
+    "title": "Chests | gigaverse | GLHFershashtaghashtagchevron-leftchevron-right",
+    "section": "hashtag Juice Chest",
+    "url": "https://glhfers.gitbook.io/gigaverse/world-environment/chests",
+    "text": "🧃 Available exclusively for Giga Juice enjoyers. Check out Giga Juice.\n\n🗺️ Top of the map, on the left side of the Dungetron area across the bridge.\n\n⏲️ Can be claimed once per week.\n\n💎 Contains exclusive charm crafting materials such as Hexchain, Sapphire annd Soulmint.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-bf38aac8",
+    "title": "Abstract Badge: Giga Juicy | gigaverse | GLHFerstriangle-exclamationhashtagarrow-up-rightcircle-infohashtagarrow-up-rightcircle-checkchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-badge-giga-juicy",
+    "text": "LIMITED TIME BADGE - NO LONGER POSSIBLE TO ACQUIRE.\n\n\"Giga Juicy\" was a flash badge for a limited time only, from 1st May 2025 till 6th May 2025."
+  },
+  {
+    "id": "gb-40e7e3c1",
+    "title": "Abstract Badge: Giga Juicy | gigaverse | GLHFerstriangle-exclamationhashtagarrow-up-rightcircle-infohashtagarrow-up-rightcircle-checkchevron-leftchevron-right",
+    "section": "hashtagStep-by-step guide ⬇️",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-badge-giga-juicy",
+    "text": "STEP 1: Go to gigaverse.ioarrow-up-right, click the {Connect} button and sign in with Abstract Global Wallet (AGW).\n\nSTEP 2: Enter a username and click on {Claim Noob 0.005 ETH}."
+  },
+  {
+    "id": "gb-5420e4fb",
+    "title": "Abstract Badge: Giga Juicy | gigaverse | GLHFerstriangle-exclamationhashtagarrow-up-rightcircle-infohashtagarrow-up-rightcircle-checkchevron-leftchevron-right",
+    "section": "hashtagyou must have 0.005 ETH in your wallet in order to mint your noob and enter the game. If you need to bridge funds to your Abstract wallet, you can use the Abstract Portalarrow-up-right to do so.",
+    "url": "https://glhfers.gitbook.io/gigaverse/abstract-eco/abstract-badge-giga-juicy",
+    "text": "STEP 3: Once you've minted your noob, you can spawn in to the game. Once you've spawned, approach the vending machine just above you, and press E to bring up the menu.\n\nSTEP 4: Via the popup menu, select any duration of Giga Juice you want, then complete your purchase by clicking on the \"Get Juiced\" button and completing the transaction in your AGW popup.\n\nSTEP 5: Head over to the rewards section on Abstract to claim the flash badge.\n\nThat's it! Soon after your purchase is complete, you'll be granted the Juice Drinker badge on Abstract\n\nLast updated 5 months ago"
+  },
+  {
+    "id": "gb-7702d8b7",
+    "title": "Tonno & Cyclops | gigaverse | GLHFersarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/tonno-and-cyclops",
+    "text": "Tonno is the Fishing Vendorarrow-up-right of the Gigaverse.\n\nSpeak with Tonno for all things fishing.\n\nCyclops is the lovable, one-eyed cat of the Gigaverse.\n\nNot much is known about them, except that they moved here together from near the sea, and most importantly: Cyclops is in charge.\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-5f3321ea",
+    "title": "GIGA Cap | gigaverse | GLHFerstriangle-exclamationarrow-up-rightchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/merchandise/giga-cap",
+    "text": "GIGA Cap was airdropped to buyers of Giga Juice tanks for a limited time.\n\nWarning: This offer is now over. You can only purchase via the DYLI NFT now\n\nYou can trade the NFT now as well as burn+claim it for a real physical cap here: https://www.dyli.io/drop/17316arrow-up-right\n\nLast updated 20 days ago"
+  },
+  {
+    "id": "gb-34e4ac7b",
+    "title": "Fair Play Rules | gigaverse | GLHFershashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/general/fair-play-rules",
+    "text": "Fair Play Rules v1\n\nWe never want Gigaverse “to be about rules”, but at the same time we have a responsibility to the community at large to have some basics in place to ensure your experience in & around the game is good, and fair."
+  },
+  {
+    "id": "gb-5f65550b",
+    "title": "Fair Play Rules | gigaverse | GLHFershashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagStrictly Prohibited:",
+    "url": "https://glhfers.gitbook.io/gigaverse/general/fair-play-rules",
+    "text": "- Technical & non-technical exploits: client hacking, ddos attacking, double spending, smart contract exploits, and any other similar exploits or attempted exploits. Use or abuse of any game bugs with the intent of progressing further than fairly intended, unfairly attaining additional items, items beyond your skill level, or similar.\n\nTechnical & non-technical exploits: client hacking, ddos attacking, double spending, smart contract exploits, and any other similar exploits or attempted exploits. Use or abuse of any game bugs with the intent of progressing further than fairly intended, unfairly attaining additional items, items beyond your skill level, or similar.\n- Scams, social engineering and social exploits: phishing, scamming other players into unintentionally giving away private keys, resources, or other game assets.\n\nScams, social engineering and social exploits: phishing, scamming other players into unintentionally giving away private keys, resources, or other game assets.\n\nGigaverse reserves the right to retroactively update this prohibited list and/or take action on behaviors that harm the integrity of the game or community, even if not currently covered here."
+  },
+  {
+    "id": "gb-ae7c060e",
+    "title": "Fair Play Rules | gigaverse | GLHFershashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagConsequences:",
+    "url": "https://glhfers.gitbook.io/gigaverse/general/fair-play-rules",
+    "text": "If our investigation determines any prohibited actions have taken place, or so have other similar levels of exploitation, penalties may apply even if specific behaviors were not previously explicit.\n\nConsequences may include: rewards ineligibility, disabled or debuffed game actions, account banning, or other actions as deemed necessary.\n\nWe will acknowledge players who responsibly disclose any exploits to the Gigaverse team."
+  },
+  {
+    "id": "gb-26f5bf49",
+    "title": "Fair Play Rules | gigaverse | GLHFershashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagAllowed:",
+    "url": "https://glhfers.gitbook.io/gigaverse/general/fair-play-rules",
+    "text": "- Multiaccounting: you may create & play the game on more than one single account.\n\nMultiaccounting: you may create & play the game on more than one single account.\n- Bots & automation: you may create tools & bots, or leverage AI agents, to assist in playing the game for you.\n\nBots & automation: you may create tools & bots, or leverage AI agents, to assist in playing the game for you."
+  },
+  {
+    "id": "gb-27676b0d",
+    "title": "Fair Play Rules | gigaverse | GLHFershashtaghashtaghashtaghashtagchevron-leftchevron-right",
+    "section": "hashtagQuestions:",
+    "url": "https://glhfers.gitbook.io/gigaverse/general/fair-play-rules",
+    "text": "For anything not covered in these docs, if you are unsure whether it is permitted or not, consult the Gigaverse community team in Discord.\n\nLast updated 5 months ago"
+  },
+  {
+    "id": "gb-abdc6b4b",
+    "title": "Links & Contracts | gigaverse | GLHFersarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-rightarrow-up-righttriangle-exclamationchevron-left",
+    "section": "Overview",
+    "url": "https://glhfers.gitbook.io/gigaverse/general/links-and-contracts",
+    "text": "// gigaverse\n\ngigaverse website: https://gigaverse.io/arrow-up-right\n\ngigaverse twitter: https://x.com/playgigaversearrow-up-right\n\nROMS:\n\nOpenSea: https://opensea.io/collection/gigaverse-roms-abstractarrow-up-right\n\nzkMarket: https://www.zkmarkets.com/abstract/collections/gigaversearrow-up-right\n\nMintify: https://abstract.mintify.xyz/abstract/gigaverse-romsarrow-up-right\n\nMagicEden: https://tinyurl.com/gigaversearrow-up-right\n\nGIGAVERSE GIGLINGS:\n\nOpenSea: https://opensea.io/collection/gigaverse-giglingsarrow-up-right\n\nITEMS:\n\nOpenSea: https://opensea.io/collection/gigaverse-itemsarrow-up-right\n\nMagicEden: https://tinyurl.com/gigaverseitemarrow-up-right\n\n// GLHFers\n\nGLHFers website: https://www.glhfers.com/arrow-up-right\n\nGLHFers twitter: https://x.com/glhfersarrow-up-right\n\nOpenSea: https://opensea.io/collection/glhfersarrow-up-right\n\nDiscord: https://discord.gg/glhfersarrow-up-right\n\nAuctions: https://etherscan.io/address/0xb928bF7aC9fE904DbA6069A11ADC59ACEED9cBa7arrow-up-right\n\nDo not trust any other links. Do not trust any surprise airdrops.\n\nLast updated 20 days ago"
   }
 ]
