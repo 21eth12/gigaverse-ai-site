@@ -1,311 +1,364 @@
-// scripts/build_docs_index.mjs
-// Crawl a public GitBook site and generate docs_index.json (title/section/text chunks)
-// Node 18+ (Node 20 on GitHub Actions is perfect)
+/**
+ * scripts/build_docs_index.mjs
+ *
+ * Crawls GitBook (glhfers.gitbook.io/gigaverse) and generates docs_index.json
+ * Output format: [{ id, title, section, url, text }]
+ *
+ * Node: 20+ (GitHub Actions ubuntu-latest is fine)
+ */
 
 import fs from "fs";
 import path from "path";
-import { load } from "cheerio";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
+import * as cheerio from "cheerio";
 
-const START_URL = "https://glhfers.gitbook.io/gigaverse";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, "..");
+const OUT_FILE = path.join(REPO_ROOT, "docs_index.json");
+
+// ---- Config ----
+const START_URL = process.env.START_URL || "https://glhfers.gitbook.io/gigaverse";
 const ALLOWED_HOST = "glhfers.gitbook.io";
-const ALLOWED_PREFIX = "/gigaverse"; // only crawl under this path
+const ALLOWED_PREFIX = "/gigaverse";
 
-// Output goes to repo root (one level up from /scripts)
-const OUT_FILE = path.join(process.cwd(), "docs_index.json");
+const MAX_PAGES = Number(process.env.MAX_PAGES || 250); // safety limit
+const FETCH_DELAY_MS = Number(process.env.FETCH_DELAY_MS || 350); // be polite
+const REQUEST_TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS || 20000);
 
-// Crawl controls
-const MAX_PAGES = 400;        // safety cap
-const REQUEST_DELAY_MS = 400; // be polite
-const CHUNK_CHAR_LIMIT = 1400;
-const MIN_CHUNK_CHARS = 120;
+const CHUNK_TARGET_CHARS = Number(process.env.CHUNK_TARGET_CHARS || 1600);
+const CHUNK_OVERLAP_CHARS = Number(process.env.CHUNK_OVERLAP_CHARS || 250);
+const MIN_CHUNK_CHARS = Number(process.env.MIN_CHUNK_CHARS || 400);
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Words/markers that commonly pollute GitBook exports
+const NOISE_PATTERNS = [
+  /arrow-up-right/gi,
+  /chevron-left/gi,
+  /chevron-right/gi,
+  /hashtag/gi,
+  /\bcopy\b/gi,
+  /\bedit\b/gi,
+  /\bsearch\b/gi,
+  /\bpowered by gitbook\b/gi,
+  /\bprevious\b/gi,
+  /\bnext\b/gi,
+];
 
-function normUrl(u) {
+// ---- Helpers ----
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function stableId(input) {
+  return crypto.createHash("sha1").update(input).digest("hex").slice(0, 10);
+}
+
+function normalizeUrl(raw, baseUrl) {
   try {
-    return new URL(u);
+    const u = new URL(raw, baseUrl);
+    // only allow same host and under prefix
+    if (u.host !== ALLOWED_HOST) return null;
+    if (!u.pathname.startsWith(ALLOWED_PREFIX)) return null;
+    // remove hash + normalize trailing slash
+    u.hash = "";
+    // keep query off (GitBook sometimes adds tracking)
+    u.search = "";
+    // normalize trailing slash (optional)
+    if (u.pathname.endsWith("/") && u.pathname !== "/") {
+      u.pathname = u.pathname.replace(/\/+$/, "/");
+    }
+    return u.toString();
   } catch {
     return null;
   }
 }
 
-function sameScope(urlObj) {
-  if (!urlObj) return false;
-  if (urlObj.host !== ALLOWED_HOST) return false;
-  if (!urlObj.pathname.startsWith(ALLOWED_PREFIX)) return false;
-  return true;
-}
-
 function cleanText(s) {
-  return (s || "")
-    .replace(/\u00a0/g, " ")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  if (!s) return "";
+  let t = s;
+
+  // Replace non-breaking spaces etc
+  t = t.replace(/\u00A0/g, " ");
+
+  // Remove noise markers
+  for (const re of NOISE_PATTERNS) t = t.replace(re, " ");
+
+  // Remove repeated "hashtaghashtag..." kind of sequences
+  t = t.replace(/(hashtag\s*){2,}/gi, " ");
+
+  // Collapse whitespace
+  t = t.replace(/[ \t]+\n/g, "\n");
+  t = t.replace(/\n{3,}/g, "\n\n");
+  t = t.replace(/[ \t]{2,}/g, " ");
+
+  // Trim
+  t = t.trim();
+
+  return t;
 }
 
-function makeId(url, section, idx) {
-  const base = `${url}|${section || ""}|${idx}`;
-  // lightweight stable hash
-  let h = 0;
-  for (let i = 0; i < base.length; i++) h = (h * 31 + base.charCodeAt(i)) >>> 0;
-  return `gb-${h.toString(16)}`;
+function dedupeLines(text) {
+  // Dedupe exact repeated lines/paragraphs while keeping order
+  const parts = text.split(/\n{2,}/);
+  const seen = new Set();
+  const out = [];
+  for (const p of parts) {
+    const key = p.trim();
+    if (!key) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out.join("\n\n");
 }
 
-function splitIntoChunks(text, limit = CHUNK_CHAR_LIMIT) {
-  const t = cleanText(text);
-  if (!t) return [];
-  if (t.length <= limit) return [t];
-
-  // split by paragraphs first
-  const paras = t.split(/\n\s*\n/).map(cleanText).filter(Boolean);
+function chunkByParagraphs(text, targetChars, overlapChars) {
+  const paras = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const chunks = [];
-  let buf = "";
+
+  let current = [];
+  let currentLen = 0;
+
+  function pushChunk() {
+    const joined = current.join("\n\n").trim();
+    if (joined.length >= MIN_CHUNK_CHARS) chunks.push(joined);
+  }
 
   for (const p of paras) {
-    if (!buf) {
-      buf = p;
+    if (!p) continue;
+
+    // If a single paragraph is massive, hard-split it
+    if (p.length > targetChars * 1.5) {
+      // Flush existing
+      if (currentLen > 0) {
+        pushChunk();
+        current = [];
+        currentLen = 0;
+      }
+      let start = 0;
+      while (start < p.length) {
+        const slice = p.slice(start, start + targetChars);
+        if (slice.trim().length >= MIN_CHUNK_CHARS) chunks.push(slice.trim());
+        start += Math.max(1, targetChars - overlapChars);
+      }
       continue;
     }
-    if ((buf + "\n\n" + p).length <= limit) {
-      buf += "\n\n" + p;
+
+    // Normal build-up
+    if (currentLen + p.length + 2 > targetChars && currentLen > 0) {
+      pushChunk();
+
+      // overlap: carry last overlapChars worth of text into next chunk
+      const prev = current.join("\n\n");
+      const carry = prev.slice(Math.max(0, prev.length - overlapChars)).trim();
+      current = carry ? [carry] : [];
+      currentLen = carry.length;
+    }
+
+    current.push(p);
+    currentLen += p.length + 2;
+  }
+
+  if (currentLen > 0) pushChunk();
+
+  return chunks;
+}
+
+async function fetchWithTimeout(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "user-agent": "GigaverseDocsIndexer/1.0 (+https://github.com/21eth12/gigaverse-ai-site)",
+        "accept": "text/html,application/xhtml+xml",
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return await res.text();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function pickBestTitle($) {
+  // Prefer h1 inside main/article, fallback to first h1, then <title>
+  const t1 = cleanText($("main h1").first().text());
+  if (t1) return t1;
+
+  const t2 = cleanText($("article h1").first().text());
+  if (t2) return t2;
+
+  const t3 = cleanText($("h1").first().text());
+  if (t3) return t3;
+
+  const t4 = cleanText($("title").text());
+  if (t4) return t4.replace(/\s*\|\s*GitBook.*$/i, "").trim();
+
+  return "Gigaverse Docs";
+}
+
+function inferSectionFromUrl(urlStr) {
+  // Basic section from path segments: /gigaverse/<group>/<page>
+  try {
+    const u = new URL(urlStr);
+    const segs = u.pathname.split("/").filter(Boolean);
+    const idx = segs.indexOf("gigaverse");
+    const after = idx >= 0 ? segs.slice(idx + 1) : segs;
+    if (after.length === 0) return "Overview";
+    // Use first segment as "section group"
+    const first = after[0].replace(/-/g, " ");
+    return first.charAt(0).toUpperCase() + first.slice(1);
+  } catch {
+    return "Overview";
+  }
+}
+
+function extractMainText($) {
+  // GitBook typically renders content in <main> with an <article>
+  // We'll try a few selectors; then strip nav/footer/aside/code-copy junk.
+
+  let $root = $("main article").first();
+  if ($root.length === 0) $root = $("article").first();
+  if ($root.length === 0) $root = $("main").first();
+  if ($root.length === 0) $root = $("body");
+
+  // Remove obvious non-content areas
+  $root.find("nav, header, footer, aside").remove();
+
+  // Remove buttons/copy widgets
+  $root.find("button, [role='button'], .gitbook-markdown-copy-code-button").remove();
+
+  // Remove SVG/icon-only elements
+  $root.find("svg").remove();
+
+  // Convert content to paragraph-ish blocks:
+  // Grab headings + paragraphs + list items + table text + code blocks.
+  const blocks = [];
+
+  const candidates = $root.find("h1,h2,h3,h4,p,li,blockquote,pre,code,table");
+  candidates.each((_, el) => {
+    const tag = el.tagName?.toLowerCase?.() || "";
+    let txt = "";
+
+    if (tag === "pre") {
+      txt = $(el).text();
+      txt = txt ? `\n\nCODE:\n${txt}\n` : "";
+    } else if (tag === "code") {
+      // avoid double-counting code inside pre; but keep inline if meaningful
+      const parentTag = $(el).parent()?.get(0)?.tagName?.toLowerCase?.();
+      if (parentTag === "pre") return;
+      txt = $(el).text();
     } else {
-      chunks.push(buf);
-      buf = p;
+      txt = $(el).text();
     }
-  }
-  if (buf) chunks.push(buf);
 
-  // if any chunk still too big, hard-slice it
-  const out = [];
-  for (const c of chunks) {
-    if (c.length <= limit) out.push(c);
-    else {
-      for (let i = 0; i < c.length; i += limit) out.push(cleanText(c.slice(i, i + limit)));
-    }
-  }
-  return out.filter((x) => x.length >= MIN_CHUNK_CHARS);
-}
-
-async function fetchHtml(url) {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "GigaverseDocsIndexer/1.0 (+https://github.com/21eth12/gigaverse-ai-site)",
-      Accept: "text/html,application/xhtml+xml",
-    },
+    txt = cleanText(txt);
+    if (txt) blocks.push(txt);
   });
-  if (!res.ok) throw new Error(`Fetch failed ${res.status} for ${url}`);
-  return await res.text();
+
+  let text = blocks.join("\n\n");
+  text = cleanText(text);
+  text = dedupeLines(text);
+
+  return text;
 }
 
-function extractLinks($, baseUrl) {
+function extractLinks($, pageUrl) {
   const links = new Set();
 
   $("a[href]").each((_, a) => {
     const href = $(a).attr("href");
     if (!href) return;
 
-    // ignore anchors/mailto/tel/javascript
-    if (href.startsWith("#")) return;
-    if (href.startsWith("mailto:")) return;
-    if (href.startsWith("tel:")) return;
-    if (href.startsWith("javascript:")) return;
+    // Skip mailto/tel/javascript
+    if (/^(mailto:|tel:|javascript:)/i.test(href)) return;
 
-    let u;
-    try {
-      u = new URL(href, baseUrl);
-    } catch {
-      return;
-    }
+    const norm = normalizeUrl(href, pageUrl);
+    if (!norm) return;
 
-    // strip hash + common tracking
-    u.hash = "";
-    u.searchParams.delete("utm_source");
-    u.searchParams.delete("utm_medium");
-    u.searchParams.delete("utm_campaign");
-    u.searchParams.delete("utm_term");
-    u.searchParams.delete("utm_content");
-
-    // normalize trailing slash (except root)
-    if (u.pathname.length > 1 && u.pathname.endsWith("/")) {
-      u.pathname = u.pathname.slice(0, -1);
-    }
-
-    if (!sameScope(u)) return;
-    links.add(u.toString());
+    links.add(norm);
   });
 
   return Array.from(links);
 }
 
-function pageTitle($) {
-  // GitBook titles vary; prefer h1 then <title>
-  const h1 = cleanText($("main h1").first().text() || $("h1").first().text());
-  const t = cleanText($("title").text());
-  return h1 || t || "Untitled";
-}
-
-function removeNoise($) {
-  // remove nav/footers/sidebars/scripts/styles
-  $("script, style, noscript").remove();
-  $("nav, header, footer, aside").remove();
-
-  // GitBook often has sidebars; keep main content if present
-  // If main exists, we’ll focus extraction on it later.
-}
-
-function extractContentBlocks($) {
-  // Prefer GitBook main content
-  const root = $("main").length ? $("main").first() : $("body");
-
-  // Turn tables into text
-  root.find("table").each((_, tbl) => {
-    const rows = [];
-    load($(tbl).html() || "")("tr").each((__, tr) => {
-      const cells = [];
-      load($(tr).html() || "")("th,td").each((___, td) => {
-        const cellText = cleanText(load($(td).html() || "").text());
-        if (cellText) cells.push(cellText);
-      });
-      if (cells.length) rows.push(cells.join(" | "));
-    });
-    const tableText = rows.length ? "Table:\n" + rows.join("\n") : "";
-    $(tbl).replaceWith(`<pre>${tableText}</pre>`);
-  });
-
-  // Build blocks by walking headings and text
-  const blocks = [];
-
-  // Gather elements in order
-  const elements = root.find("h1,h2,h3,h4,p,li,pre,code,blockquote").toArray();
-
-  let currentSection = "Overview";
-  let buffer = "";
-
-  const flush = () => {
-    const text = cleanText(buffer);
-    if (text && text.length >= MIN_CHUNK_CHARS) {
-      blocks.push({ section: currentSection, text });
-    }
-    buffer = "";
-  };
-
-  for (const el of elements) {
-    const tag = el.tagName?.toLowerCase?.() || "";
-    const txt = cleanText($(el).text());
-
-    if (!txt) continue;
-
-    if (tag === "h1" || tag === "h2" || tag === "h3" || tag === "h4") {
-      // new section; flush old buffer
-      flush();
-      currentSection = txt;
-      continue;
-    }
-
-    // regular content
-    // keep lists readable
-    if (tag === "li") {
-      buffer += (buffer ? "\n" : "") + `- ${txt}`;
-    } else if (tag === "pre" || tag === "code") {
-      buffer += (buffer ? "\n\n" : "") + `Code/Pre:\n${txt}`;
-    } else if (tag === "blockquote") {
-      buffer += (buffer ? "\n\n" : "") + `Quote:\n${txt}`;
-    } else {
-      buffer += (buffer ? "\n\n" : "") + txt;
-    }
-
-    // if buffer too large, flush to blocks and keep going
-    if (buffer.length >= CHUNK_CHAR_LIMIT * 1.2) {
-      flush();
-    }
-  }
-
-  flush();
-  return blocks;
-}
-
-async function crawl() {
+// ---- Main crawl ----
+async function main() {
+  const visited = new Set();
   const queue = [START_URL];
-  const seen = new Set();
-  const pages = [];
 
-  while (queue.length && pages.length < MAX_PAGES) {
+  const out = [];
+
+  console.log(`Start crawl: ${START_URL}`);
+  console.log(`Output file: ${OUT_FILE}`);
+
+  while (queue.length > 0 && visited.size < MAX_PAGES) {
     const url = queue.shift();
-    if (!url || seen.has(url)) continue;
-    seen.add(url);
+    if (!url || visited.has(url)) continue;
+    visited.add(url);
 
-    console.log(`Crawling (${pages.length + 1}/${MAX_PAGES}): ${url}`);
+    console.log(`\n[${visited.size}/${MAX_PAGES}] Fetch: ${url}`);
 
     let html;
     try {
-      html = await fetchHtml(url);
+      html = await fetchWithTimeout(url);
     } catch (e) {
-      console.warn(`Skip (fetch error): ${url} :: ${e.message}`);
+      console.log(`  !! fetch failed: ${e.message}`);
       continue;
     }
 
-    const $ = load(html);
-    removeNoise($);
+    const $ = cheerio.load(html);
 
-    const title = pageTitle($);
-    const blocks = extractContentBlocks($);
+    const title = pickBestTitle($);
+    const section = inferSectionFromUrl(url);
 
-    // add discovered links
-    const links = extractLinks($, url);
-    for (const l of links) {
-      if (!seen.has(l)) queue.push(l);
-    }
+    let text = extractMainText($);
 
-    pages.push({ url, title, blocks });
+    // If the page is basically empty, skip it
+    if (!text || text.length < 100) {
+      console.log("  .. no usable content, skipping");
+    } else {
+      // Chunk it
+      const chunks = chunkByParagraphs(text, CHUNK_TARGET_CHARS, CHUNK_OVERLAP_CHARS);
 
-    await sleep(REQUEST_DELAY_MS);
-  }
+      console.log(`  .. title: ${title}`);
+      console.log(`  .. section: ${section}`);
+      console.log(`  .. chunks: ${chunks.length}`);
 
-  return pages;
-}
-
-function buildIndex(pages) {
-  const chunks = [];
-
-  for (const p of pages) {
-    const { url, title, blocks } = p;
-
-    // Convert each block to multiple chunks if needed
-    blocks.forEach((b, bIdx) => {
-      const parts = splitIntoChunks(b.text, CHUNK_CHAR_LIMIT);
-      parts.forEach((part, i) => {
-        chunks.push({
-          id: makeId(url, b.section, bIdx * 1000 + i),
-          title: title || "Untitled",
-          section: b.section || "Overview",
+      chunks.forEach((chunkText, i) => {
+        const id = `gb-${stableId(`${url}#${i}`)}`;
+        out.push({
+          id,
+          title: cleanText(title),
+          section: cleanText(section),
           url,
-          text: part,
+          text: chunkText,
         });
       });
-    });
+    }
+
+    // Discover new links
+    const newLinks = extractLinks($, url);
+    for (const l of newLinks) {
+      if (!visited.has(l)) queue.push(l);
+    }
+
+    await sleep(FETCH_DELAY_MS);
   }
 
-  return chunks;
-}
+  // Write output
+  fs.writeFileSync(OUT_FILE, JSON.stringify(out, null, 2), "utf8");
 
-async function main() {
-  console.log("Starting GitBook crawl...");
-  console.log(`Start: ${START_URL}`);
-  console.log(`Scope: ${ALLOWED_HOST}${ALLOWED_PREFIX}`);
-
-  const pages = await crawl();
-  console.log(`Fetched pages: ${pages.length}`);
-
-  const chunks = buildIndex(pages);
-  console.log(`Built chunks: ${chunks.length}`);
-
-  // Write pretty JSON
-  fs.writeFileSync(OUT_FILE, JSON.stringify(chunks, null, 2), "utf8");
+  console.log(`\nDone. Pages visited: ${visited.size}`);
+  console.log(`Chunks written: ${out.length}`);
   console.log(`Wrote: ${OUT_FILE}`);
 }
 
-main().catch((err) => {
-  console.error("Fatal:", err);
+main().catch((e) => {
+  console.error("Fatal error:", e);
   process.exit(1);
 });
