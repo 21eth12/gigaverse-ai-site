@@ -1,35 +1,293 @@
-name: Build docs_index.json
+// scripts/build_docs_index.mjs
+// Crawls GitBook (glhfers.gitbook.io/gigaverse) and generates docs_index.json
+// Output format: [{ id, title, section, url, text }]
 
-on:
-  workflow_dispatch: {}
-  schedule:
-    - cron: "0 3 * * *"
+import fs from "fs";
+import path from "path";
+import * as cheerio from "cheerio";
 
-permissions:
-  contents: write
+const START_URL = "https://glhfers.gitbook.io/gigaverse";
+const ALLOWED_HOST = "glhfers.gitbook.io";
+const ALLOWED_PREFIX = "/gigaverse";
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+// Where to write output (repo root)
+const OUT_FILE = path.join(process.cwd(), "docs_index.json");
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+// Safety limits
+const MAX_PAGES = 300;          // adjust if needed
+const REQUEST_DELAY_MS = 250;   // polite crawl delay
 
-      - name: Install deps
-        run: npm install cheerio
+// -------------------------
+// Utilities
+// -------------------------
 
-      - name: Run scraper
-        run: node ./scripts/build_docs_index.mjs
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-      - name: Commit and push docs_index.json
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs_index.json
-          git commit -m "Update docs_index.json (auto)" || echo "No changes to commit"
-          git push
+function normalizeUrl(u) {
+  try {
+    const url = new URL(u);
+    url.hash = "";
+    // Some GitBook links include trailing slashes inconsistently
+    url.pathname = url.pathname.replace(/\/+$/, "") || "/";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function isAllowed(u) {
+  try {
+    const url = new URL(u);
+    if (url.host !== ALLOWED_HOST) return false;
+    if (!url.pathname.startsWith(ALLOWED_PREFIX)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function makeIdFromUrl(u) {
+  // deterministic ID from URL path (short)
+  const url = new URL(u);
+  const key = `${url.host}${url.pathname}`.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+  return `gb-${key.slice(-24)}-${hash(key).slice(0, 8)}`;
+}
+
+function hash(str) {
+  // simple string hash (not crypto, just stable)
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
+}
+
+// -------------------------
+// CLEANING (important)
+// -------------------------
+
+function cleanText(raw) {
+  if (!raw) return "";
+
+  let t = raw;
+
+  // Remove GitBook UI junk keywords that leak into text
+  t = t.replace(/\b(arrow-[a-z-]+)\b/gi, " ");
+  t = t.replace(/\b(chevron-[a-z-]+)\b/gi, " ");
+  t = t.replace(/\b(hashtag[a-zA-Z0-9_-]*)\b/g, " ");
+
+  // Remove common GitBook UI phrases
+  t = t.replace(/Open in new tab/gi, " ");
+  t = t.replace(/Copy link/gi, " ");
+  t = t.replace(/On this page/gi, " ");
+  t = t.replace(/Last updated.*$/gim, " "); // remove "Last updated ..." lines
+
+  // Remove excessive punctuation artifacts
+  t = t.replace(/[•·●▪■◆►▶︎]+/g, " ");
+
+  // Convert weird separators into normal spacing
+  t = t.replace(/\|/g, " ");
+
+  // Collapse whitespace
+  t = t.replace(/\s+/g, " ").trim();
+
+  return t;
+}
+
+function cleanTitle(rawTitle) {
+  if (!rawTitle) return "";
+  let t = rawTitle;
+
+  // remove extra GitBook icon words from title
+  t = t.replace(/\b(arrow-[a-z-]+)\b/gi, "");
+  t = t.replace(/\b(chevron-[a-z-]+)\b/gi, "");
+  t = t.replace(/\b(hashtag[a-zA-Z0-9_-]*)\b/g, "");
+
+  // normalize spaces
+  t = t.replace(/\s+/g, " ").trim();
+
+  // some pages show like: "Fair Play Rules | gigaverse | GLHFers..."
+  // Keep the first meaningful part
+  t = t.split("|")[0].trim();
+
+  return t;
+}
+
+// -------------------------
+// Extraction
+// -------------------------
+
+function extractMainText($) {
+  // GitBook pages usually have main content in <main>
+  // We'll pull text from main article-ish area, ignoring nav/sidebars as much as possible.
+
+  // Prefer main content
+  let $main = $("main");
+  if (!$main.length) $main = $("body");
+
+  // Remove obvious non-content areas
+  $main.find("nav").remove();
+  $main.find("header").remove();
+  $main.find("footer").remove();
+  $main.find("aside").remove();
+
+  // Remove buttons/controls that sometimes carry text
+  $main.find("button").remove();
+  $main.find("[role='button']").remove();
+
+  // Remove code copy UI bits
+  $main.find("svg").remove();
+  $main.find("path").remove();
+
+  // Keep text from headings + paragraphs + lists + tables
+  const parts = [];
+
+  $main.find("h1,h2,h3,h4,h5,h6,p,li,td,th,blockquote").each((_, el) => {
+    const txt = $(el).text();
+    const cleaned = cleanText(txt);
+    if (cleaned) parts.push(cleaned);
+  });
+
+  // Fallback: if parts are empty, do a more general text grab
+  if (parts.length === 0) {
+    const fallback = cleanText($main.text());
+    return fallback;
+  }
+
+  // Join and de-duplicate consecutive repeats
+  const joined = parts.join("\n");
+  return cleanText(joined);
+}
+
+function extractSection($) {
+  // Try to infer section/category from breadcrumbs or sidebar selected item
+  // If not found, keep empty or "Overview"
+  let section = "";
+
+  const breadcrumb = $("[aria-label='Breadcrumb']").text();
+  section = cleanText(breadcrumb);
+
+  if (!section) {
+    // sometimes sidebar group headings appear as nav labels
+    const navLabel = $("nav [aria-current='page']").closest("li").parents("ul").first().prev().text();
+    section = cleanText(navLabel);
+  }
+
+  if (!section) section = "Overview";
+  return section;
+}
+
+function extractTitle($, url) {
+  // Prefer h1
+  let title = cleanTitle($("main h1").first().text());
+  if (!title) title = cleanTitle($("title").text());
+  if (!title) title = cleanTitle(new URL(url).pathname.split("/").pop());
+  return title || "Untitled";
+}
+
+function extractLinks($, baseUrl) {
+  const links = new Set();
+  $("a[href]").each((_, a) => {
+    const href = $(a).attr("href");
+    if (!href) return;
+
+    // ignore mailto/tel
+    if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+    let abs = null;
+
+    try {
+      abs = new URL(href, baseUrl).toString();
+    } catch {
+      return;
+    }
+
+    const norm = normalizeUrl(abs);
+    if (!norm) return;
+    if (!isAllowed(norm)) return;
+
+    links.add(norm);
+  });
+
+  return [...links];
+}
+
+// -------------------------
+// Crawl
+// -------------------------
+
+async function fetchHtml(url) {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "GigaverseDocsIndexer/1.0 (+https://github.com/21eth12/gigaverse-ai-site)"
+    }
+  });
+
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return await res.text();
+}
+
+async function crawl() {
+  const queue = [normalizeUrl(START_URL)];
+  const seen = new Set();
+  const results = [];
+
+  while (queue.length && results.length < MAX_PAGES) {
+    const url = queue.shift();
+    if (!url) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+
+    try {
+      await sleep(REQUEST_DELAY_MS);
+
+      const html = await fetchHtml(url);
+      const $ = cheerio.load(html);
+
+      const title = extractTitle($, url);
+      const section = extractSection($);
+      const text = extractMainText($);
+
+      // Skip empty pages (but still crawl links)
+      if (text && text.length > 40) {
+        results.push({
+          id: makeIdFromUrl(url),
+          title,
+          section,
+          url,
+          text
+        });
+      }
+
+      const links = extractLinks($, url);
+      for (const l of links) {
+        if (!seen.has(l)) queue.push(l);
+      }
+
+      process.stdout.write(
+        `\rCrawled: ${seen.size} | Indexed: ${results.length} | Queue: ${queue.length}        `
+      );
+    } catch (err) {
+      console.warn(`\n[warn] Failed ${url}: ${err.message}`);
+    }
+  }
+
+  console.log("\nDone.");
+  return results;
+}
+
+(async () => {
+  console.log("Building docs_index.json from:", START_URL);
+
+  const chunks = await crawl();
+
+  // Final pass: remove duplicates by URL
+  const byUrl = new Map();
+  for (const c of chunks) byUrl.set(c.url, c);
+  const finalChunks = [...byUrl.values()];
+
+  fs.writeFileSync(OUT_FILE, JSON.stringify(finalChunks, null, 2), "utf8");
+
+  console.log(`Wrote ${finalChunks.length} chunks -> ${OUT_FILE}`);
+})();
