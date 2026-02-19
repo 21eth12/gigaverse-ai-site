@@ -221,4 +221,92 @@ body{
   background: rgba(0,0,0,.18);
   overflow:auto;
   max-height:520px;
+} 
+/* ===== Answer Panel UI (missing styles) ===== */
+
+.answer-panel {
+  margin-bottom: 14px;
+}
+
+.panel-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+
+.badge{
+  font-size:12px;
+  font-weight:900;
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid rgba(46,231,255,.25);
+  background: rgba(0,0,0,.25);
+  color: var(--glow);
+}
+
+.badge.docs{
+  border-color: rgba(46,231,255,.35);
+  color: var(--glow);
+}
+
+.badge.helper{
+  border-color: rgba(255,59,59,.35);
+  color: var(--warn);
+}
+
+.answer-text{
+  border:1px solid rgba(46,231,255,.16);
+  background: rgba(0,0,0,.22);
+  border-radius:12px;
+  padding:12px;
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+
+.answer-meta{
+  display:flex;
+  gap:14px;
+  margin-top:12px;
+}
+
+.answer-sources, .answer-followups{
+  flex:1;
+  border:1px solid rgba(46,231,255,.14);
+  background: rgba(0,0,0,.16);
+  border-radius:12px;
+  padding:12px;
+}
+
+.meta-title{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:10px;
+  letter-spacing:.8px;
+}
+
+.sources-list{
+  margin:0;
+  padding-left:18px;
+  color: var(--txt);
+  font-size:12px;
+  line-height:1.5;
+}
+
+.followups{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.followup-chip{
+  border:1px solid rgba(46,231,255,.25);
+  background: rgba(46,231,255,.06);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  cursor:pointer;
+}
+.followup-chip:hover{
+  border-color: rgba(46,231,255,.4);
 }
