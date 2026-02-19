@@ -50,6 +50,32 @@
 
         <!-- CHAT VIEW -->
         <div id="view-chat" class="view">
+
+          <!-- ✅ MAIN ANSWER PANEL (latest answer only) -->
+          <section id="answerPanel" class="panel answer-panel">
+            <div class="panel-head">
+              <div class="panel-title">Answer</div>
+              <div id="answerModeBadge" class="badge docs">DOCS</div>
+            </div>
+
+            <div id="answerText" class="answer-text">
+              Ask a question to see the answer here.
+            </div>
+
+            <div id="answerMeta" class="answer-meta" style="display:none;">
+              <div class="answer-sources">
+                <div class="meta-title">Sources</div>
+                <ul id="answerSources" class="sources-list"></ul>
+              </div>
+
+              <div class="answer-followups">
+                <div class="meta-title">Suggested</div>
+                <div id="answerFollowups" class="followups"></div>
+              </div>
+            </div>
+          </section>
+          <!-- ✅ END ANSWER PANEL -->
+
           <div class="terminal">
             <div class="msg system">
               <div class="msg-meta">GIGUS • system</div>
