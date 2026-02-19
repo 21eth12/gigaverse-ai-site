@@ -1,35 +1,142 @@
-// /api/chat.js — Gigaverse AI (Groq)
-// Expects POST { question: string, chunks: [{title, section, text}] }
+// /api/chat.js — Gigaverse AI (Groq) — Docs-first (PRO retrieval)
+// Expects POST { question: string, chunks?: [{title, section, text, url?}] }
 // Returns JSON: { mode, answer, followups, citations }
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Use POST" });
-    }
+    if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
 
     const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "Missing GROQ_API_KEY in Vercel env vars" });
-    }
+    if (!apiKey) return res.status(500).json({ error: "Missing GROQ_API_KEY in Vercel env vars" });
 
     const { question, chunks } = req.body || {};
     if (!question || typeof question !== "string") {
       return res.status(400).json({ error: "Missing 'question' string" });
     }
 
-    const safeChunks = Array.isArray(chunks) ? chunks.slice(0, 8) : [];
+    // -----------------------------
+    // Retrieval (server-side re-rank + fallback)
+    // -----------------------------
+    const normalize = (s) =>
+      (typeof s === "string" ? s : "")
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
 
-    // Build context from chunks (short + clean)
-    const context = safeChunks
+    const qRaw = question.trim();
+    const q = normalize(qRaw);
+    const qWords = q.split(" ").filter((w) => w.length >= 3);
+
+    function scoreChunk(chunk) {
+      const title = normalize(chunk?.title || "");
+      const section = normalize(chunk?.section || "");
+      const text = normalize(chunk?.text || "");
+
+      if (!text && !title && !section) return 0;
+
+      let score = 0;
+
+      // strongest: full-question substring match
+      if (q && text.includes(q)) score += 30;
+      if (q && title.includes(q)) score += 24;
+      if (q && section.includes(q)) score += 16;
+
+      // word-level scoring (title/section weighted)
+      for (const w of qWords) {
+        if (title.includes(w)) score += 6;
+        if (section.includes(w)) score += 4;
+        if (text.includes(w)) score += 1;
+      }
+
+      // intent boosts (helps "how do I..." style)
+      const intentBoostWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best"];
+      for (const ib of intentBoostWords) {
+        if (q.includes(ib)) {
+          score += 2;
+          break;
+        }
+      }
+
+      // small penalty if text is extremely tiny (often noise)
+      const len = (chunk?.text || "").length;
+      if (len > 0 && len < 120) score -= 3;
+
+      return score;
+    }
+
+    function rerankAndPick(allChunks, k = 6) {
+      const list = Array.isArray(allChunks) ? allChunks : [];
+      const scored = list
+        .map((c) => ({
+          title: (c?.title || "Untitled").toString(),
+          section: (c?.section || "").toString(),
+          url: (c?.url || "").toString(),
+          text: (c?.text || "").toString(),
+          _score: scoreChunk(c),
+        }))
+        .sort((a, b) => b._score - a._score);
+
+      const picked = scored.filter((x) => x._score > 0).slice(0, k);
+
+      // If nothing matched, return empty (we'll go helper mode)
+      return picked;
+    }
+
+    async function fetchDocsIndexFromSite() {
+      // Build origin from request headers (works on Vercel)
+      const proto = (req.headers["x-forwarded-proto"] || "https").toString();
+      const host = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
+      if (!host) return [];
+
+      const origin = `${proto}://${host}`;
+      const url = `${origin}/docs_index.json?cb=${Date.now()}`;
+
+      const r = await fetch(url, { headers: { "cache-control": "no-store" } });
+      if (!r.ok) return [];
+      const data = await r.json().catch(() => null);
+
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.chunks)) return data.chunks;
+      if (data && Array.isArray(data.docs)) return data.docs;
+      return [];
+    }
+
+    // Use chunks sent from client, but ALWAYS rerank them for best relevance.
+    const clientChunks = Array.isArray(chunks) ? chunks : [];
+    let picked = rerankAndPick(clientChunks, 6);
+
+    // If client didn't send chunks (or they were bad), fallback to server fetching docs_index.json
+    if (picked.length === 0) {
+      const docsIndex = await fetchDocsIndexFromSite();
+      // Rerank from full index, but cap to avoid huge CPU if docs get massive
+      // (If docsIndex is huge, we still score it — but this keeps worst-case safer)
+      const capped = docsIndex.length > 6000 ? docsIndex.slice(0, 6000) : docsIndex;
+      picked = rerankAndPick(capped, 6);
+    }
+
+    // Build context (clean + structured)
+    const context = picked
       .map((c, i) => {
-        const title = (c?.title || "Untitled").toString();
-        const section = (c?.section || "").toString();
-        const text = (c?.text || "").toString();
-        return `CHUNK ${i + 1}\nTITLE: ${title}\nSECTION: ${section}\nTEXT:\n${text}`.trim();
+        const title = (c.title || "Untitled").toString().trim();
+        const section = (c.section || "").toString().trim();
+        const url = (c.url || "").toString().trim();
+        const text = (c.text || "").toString().trim();
+        return [
+          `SOURCE ${i + 1}`,
+          `TITLE: ${title}`,
+          section ? `SECTION: ${section}` : "",
+          url ? `URL: ${url}` : "",
+          `CONTENT:\n${text}`,
+        ]
+          .filter(Boolean)
+          .join("\n");
       })
       .join("\n\n---\n\n");
 
+    // -----------------------------
+    // Model prompting (Docs-first)
+    // -----------------------------
     const SYSTEM = `
 You are Gigaverse AI, the official AI assistant for the Gigaverse community.
 
@@ -37,23 +144,17 @@ Style:
 - Speak clearly and confidently.
 - Be helpful and professional.
 - Avoid robotic phrases.
-- Do not mention "chunks" or "docs index".
-- Do not say "I don't know" unless absolutely necessary.
-
-Behavior:
-1. If relevant documentation exists, answer using it and cite the section title.
-2. If the documentation is incomplete, provide a helpful answer based on general knowledge but make it clear when something is not explicitly stated in the docs.
-3. Never fabricate game mechanics or features that are not documented.
-4. If the question is vague or playful, interpret the intent intelligently.
-
-Keep answers structured and readable.
-STYLE 2:
+- Do not mention internal implementation details (no “chunks”, no “docs index”, no “RAG”).
+- Do not say “I don't know” unless absolutely necessary.
 - No jokes, no roleplay, no sarcasm, no “mystery” lines.
-- Use short structured answers (bullets when useful).
-- If citing, cite only what is in DOC CHUNKS.
-- If user asks something general (e.g. “how do I craft?”) and docs are missing, guide them on what to check + what info you need.
 
-OUTPUT (JSON ONLY):
+Behavior (Docs-first):
+1) If SOURCES contain the answer, answer from them and cite the relevant SOURCE titles/sections.
+2) If SOURCES do not contain the answer, still help: give practical guidance and ask 1–2 targeted follow-up questions.
+   - In that case, be explicit: “I don’t see this explicitly in the docs I have loaded.”
+3) Never invent Gigaverse-specific mechanics that are not supported by SOURCES.
+
+Output (JSON only):
 {
   "mode": "docs" | "helper",
   "answer": string,
@@ -63,16 +164,16 @@ OUTPUT (JSON ONLY):
 `.trim();
 
     const userPrompt = `
-DOC CHUNKS:
-${context || "(no chunks provided)"}
+SOURCES:
+${context || "(no sources matched)"}
 
 USER QUESTION:
-${question}
+${qRaw}
 
-Instructions:
-- If DOC CHUNKS contain the answer, set mode="docs" and cite the best matching chunks.
-- If DOC CHUNKS do NOT contain the answer, set mode="helper" and provide helpful steps + 1–2 follow-up questions.
-- citations must be empty in helper mode.
+Rules:
+- If SOURCES contain the answer, mode="docs" and include up to 3 citations (title + section).
+- If SOURCES do NOT contain the answer, mode="helper", citations must be [].
+- Followups: include 0–2 short questions only if helpful.
 Return JSON only.
 `.trim();
 
@@ -85,7 +186,7 @@ Return JSON only.
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         temperature: 0.2,
-        max_tokens: 500,
+        max_tokens: 650,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM },
@@ -97,14 +198,12 @@ Return JSON only.
     const raw = await groqRes.json().catch(() => null);
 
     if (!groqRes.ok) {
-      const msg =
-        raw?.error?.message ||
-        raw?.error ||
-        `Groq error (${groqRes.status})`;
+      const msg = raw?.error?.message || raw?.error || `Groq error (${groqRes.status})`;
       return res.status(groqRes.status).json({ error: msg, details: raw });
     }
 
     const content = raw?.choices?.[0]?.message?.content || "{}";
+
     let parsed;
     try {
       parsed = JSON.parse(content);
@@ -114,11 +213,16 @@ Return JSON only.
 
     // Normalize output
     const mode = parsed?.mode === "docs" ? "docs" : "helper";
-    const answer = typeof parsed?.answer === "string" ? parsed.answer : "I can help—what are you trying to do?";
-    const followups = Array.isArray(parsed?.followups) ? parsed.followups.slice(0, 2).map(String) : [];
-    let citations = Array.isArray(parsed?.citations) ? parsed.citations : [];
+    const answer =
+      typeof parsed?.answer === "string" && parsed.answer.trim()
+        ? parsed.answer
+        : "I can help—what are you trying to do in Gigaverse?";
 
-    // In helper mode: no citations
+    const followups = Array.isArray(parsed?.followups)
+      ? parsed.followups.slice(0, 2).map((x) => String(x)).filter(Boolean)
+      : [];
+
+    let citations = Array.isArray(parsed?.citations) ? parsed.citations : [];
     if (mode === "helper") citations = [];
 
     // Dedupe citations (title+section)
