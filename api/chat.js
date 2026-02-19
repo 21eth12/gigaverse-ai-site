@@ -9,14 +9,18 @@ export default async function handler(req, res) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "Missing GROQ_API_KEY in Vercel env vars" });
 
-    const { question, chunks } = req.body || {};
-    if (!question || typeof question !== "string") {
-      return res.status(400).json({ error: "Missing 'question' string" });
-    }
+    const body = req.body || {};
+    const question = typeof body.question === "string" ? body.question.trim() : "";
 
-    // -----------------------------
-    // Retrieval (server-side re-rank + fallback)
-    // -----------------------------
+    if (!question) return res.status(400).json({ error: "Missing 'question' string" });
+
+    // ✅ caps (prevents abuse + token explosions)
+    const QUESTION_MAX = 900;
+    const CHUNKS_MAX = 12;
+    const CHUNK_TEXT_MAX = 2400;
+
+    const qRaw = question.slice(0, QUESTION_MAX);
+
     const normalize = (s) =>
       (typeof s === "string" ? s : "")
         .toLowerCase()
@@ -24,9 +28,15 @@ export default async function handler(req, res) {
         .replace(/\s+/g, " ")
         .trim();
 
-    const qRaw = question.trim();
     const q = normalize(qRaw);
     const qWords = q.split(" ").filter((w) => w.length >= 3);
+
+    const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best"];
+
+    function clampText(t, max) {
+      const s = typeof t === "string" ? t : "";
+      return s.length > max ? s.slice(0, max) : s;
+    }
 
     function scoreChunk(chunk) {
       const title = normalize(chunk?.title || "");
@@ -49,42 +59,38 @@ export default async function handler(req, res) {
         if (text.includes(w)) score += 1;
       }
 
-      // intent boosts (helps "how do I..." style)
-      const intentBoostWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best"];
-      for (const ib of intentBoostWords) {
-        if (q.includes(ib)) {
-          score += 2;
-          break;
-        }
+      // ✅ chunk-aware intent boost
+      for (const iw of intentWords) {
+        if (!q.includes(iw)) continue;
+        if (title.includes(iw) || section.includes(iw)) score += 4;
+        else if (text.includes(iw)) score += 1;
       }
 
-      // small penalty if text is extremely tiny (often noise)
+      // length sanity (tiny chunks often junk)
       const len = (chunk?.text || "").length;
-      if (len > 0 && len < 120) score -= 3;
+      if (len > 0 && len < 140) score -= 4;
 
       return score;
     }
 
     function rerankAndPick(allChunks, k = 6) {
       const list = Array.isArray(allChunks) ? allChunks : [];
-      const scored = list
+      const limited = list.slice(0, CHUNKS_MAX);
+
+      const scored = limited
         .map((c) => ({
-          title: (c?.title || "Untitled").toString(),
-          section: (c?.section || "").toString(),
-          url: (c?.url || "").toString(),
-          text: (c?.text || "").toString(),
+          title: String(c?.title || "Untitled"),
+          section: String(c?.section || ""),
+          url: String(c?.url || ""),
+          text: clampText(String(c?.text || ""), CHUNK_TEXT_MAX),
           _score: scoreChunk(c),
         }))
         .sort((a, b) => b._score - a._score);
 
-      const picked = scored.filter((x) => x._score > 0).slice(0, k);
-
-      // If nothing matched, return empty (we'll go helper mode)
-      return picked;
+      return scored.filter((x) => x._score > 0).slice(0, k);
     }
 
     async function fetchDocsIndexFromSite() {
-      // Build origin from request headers (works on Vercel)
       const proto = (req.headers["x-forwarded-proto"] || "https").toString();
       const host = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
       if (!host) return [];
@@ -94,34 +100,31 @@ export default async function handler(req, res) {
 
       const r = await fetch(url, { headers: { "cache-control": "no-store" } });
       if (!r.ok) return [];
-      const data = await r.json().catch(() => null);
 
+      const data = await r.json().catch(() => null);
       if (Array.isArray(data)) return data;
       if (data && Array.isArray(data.chunks)) return data.chunks;
       if (data && Array.isArray(data.docs)) return data.docs;
       return [];
     }
 
-    // Use chunks sent from client, but ALWAYS rerank them for best relevance.
-    const clientChunks = Array.isArray(chunks) ? chunks : [];
+    // Client chunks (rerank)
+    const clientChunks = Array.isArray(body.chunks) ? body.chunks : [];
     let picked = rerankAndPick(clientChunks, 6);
 
-    // If client didn't send chunks (or they were bad), fallback to server fetching docs_index.json
+    // Fallback to docs_index.json only if needed
     if (picked.length === 0) {
       const docsIndex = await fetchDocsIndexFromSite();
-      // Rerank from full index, but cap to avoid huge CPU if docs get massive
-      // (If docsIndex is huge, we still score it — but this keeps worst-case safer)
-      const capped = docsIndex.length > 6000 ? docsIndex.slice(0, 6000) : docsIndex;
+      const capped = docsIndex.length > 7000 ? docsIndex.slice(0, 7000) : docsIndex;
       picked = rerankAndPick(capped, 6);
     }
 
-    // Build context (clean + structured)
     const context = picked
       .map((c, i) => {
-        const title = (c.title || "Untitled").toString().trim();
-        const section = (c.section || "").toString().trim();
-        const url = (c.url || "").toString().trim();
-        const text = (c.text || "").toString().trim();
+        const title = (c.title || "Untitled").trim();
+        const section = (c.section || "").trim();
+        const url = (c.url || "").trim();
+        const text = (c.text || "").trim();
         return [
           `SOURCE ${i + 1}`,
           `TITLE: ${title}`,
@@ -134,9 +137,6 @@ export default async function handler(req, res) {
       })
       .join("\n\n---\n\n");
 
-    // -----------------------------
-    // Model prompting (Docs-first)
-    // -----------------------------
     const SYSTEM = `
 You are Gigaverse AI, the official AI assistant for the Gigaverse community.
 
@@ -145,8 +145,7 @@ Style:
 - Be helpful and professional.
 - Avoid robotic phrases.
 - Do not mention internal implementation details (no “chunks”, no “docs index”, no “RAG”).
-- Do not say “I don't know” unless absolutely necessary.
-- No jokes, no roleplay, no sarcasm, no “mystery” lines.
+- No jokes, no roleplay, no sarcasm.
 
 Behavior (Docs-first):
 1) If SOURCES contain the answer, answer from them and cite the relevant SOURCE titles/sections.
@@ -211,11 +210,11 @@ Return JSON only.
       parsed = { mode: "helper", answer: content, followups: [], citations: [] };
     }
 
-    // Normalize output
     const mode = parsed?.mode === "docs" ? "docs" : "helper";
+
     const answer =
       typeof parsed?.answer === "string" && parsed.answer.trim()
-        ? parsed.answer
+        ? parsed.answer.trim()
         : "I can help—what are you trying to do in Gigaverse?";
 
     const followups = Array.isArray(parsed?.followups)
@@ -225,18 +224,17 @@ Return JSON only.
     let citations = Array.isArray(parsed?.citations) ? parsed.citations : [];
     if (mode === "helper") citations = [];
 
-    // Dedupe citations (title+section)
+    // dedupe citations
     const seen = new Set();
     const unique = [];
     for (const c of citations) {
       const t = (c?.title || "").toString().trim();
       const s = (c?.section || "").toString().trim();
-      const key = `${t}__${s}`;
       if (!t) continue;
-      if (!seen.has(key)) {
-        seen.add(key);
-        unique.push({ title: t, section: s });
-      }
+      const key = `${t}__${s}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push({ title: t, section: s });
     }
 
     return res.status(200).json({
