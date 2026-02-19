@@ -2,10 +2,14 @@
    - Loads docs_index.json
    - Picks relevant chunks (lightweight search)
    - Sends to /api/chat
-   - Renders answer + followups + citations (only when docs mode)
+   - Renders:
+      ✅ Answer panel (latest answer only)
+      ✅ Terminal chat log (history)
+      ✅ Sources + About views
 */
 
 (() => {
+  // ---------- tiny helpers ----------
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   const safeText = (v) => (typeof v === "string" ? v : "");
@@ -23,16 +27,51 @@
     return node;
   }
 
-  function hideIfExists(sel) {
-    const node = $(sel);
-    if (node) node.style.display = "none";
-  }
+  // ---------- app state ----------
+  const state = {
+    docs: [],
+    ready: false,
+    view: "chat",
+  };
 
+  // ---------- dom ----------
+  const dom = {
+    // views
+    viewChat: $("#view-chat"),
+    viewSources: $("#view-sources"),
+    viewAbout: $("#view-about"),
+
+    // nav (uses data-view in your HTML)
+    navBtns: $$(".nav-btn[data-view]"),
+
+    // chat
+    chatLog: $("#chatLog"),
+    input: $("#chatInput"),
+    sendBtn: $("#askBtn"),
+
+    // status badge in top bar
+    docsStatus: $("#docsStatus"),
+
+    // sources view
+    sourcesPre: $("#sourcesPre"),
+
+    // answer panel
+    answerText: $("#answerText"),
+    answerModeBadge: $("#answerModeBadge"),
+    answerMeta: $("#answerMeta"),
+    answerSources: $("#answerSources"),
+    answerFollowups: $("#answerFollowups"),
+  };
+
+  // ---------- UX: disable Ctrl/Cmd+K palette (if any) ----------
   function killCommandPalette() {
-    hideIfExists("#commandModal");
-    hideIfExists(".command-modal");
-    hideIfExists(".commandPalette");
+    // hide common palette/modals if present
+    ["#commandModal", ".command-modal", ".commandPalette"].forEach((sel) => {
+      const n = $(sel);
+      if (n) n.style.display = "none";
+    });
     $$(".modal-backdrop, .backdrop, .overlay").forEach((n) => (n.style.display = "none"));
+
     window.addEventListener(
       "keydown",
       (e) => {
@@ -45,60 +84,42 @@
     );
   }
 
-  const state = { docs: [], ready: false, view: "chat" };
-
-  const dom = {
-    viewChat: $("#view-chat") || $("#chatView") || $("#ai-chat") || $("#mainChat"),
-    viewSources: $("#view-sources") || $("#sourcesView"),
-    viewAbout: $("#view-about") || $("#aboutView"),
-
-    btnChat: $("#nav-chat") || $("#btnChat") || $$("button, a").find((b) => (b.textContent || "").trim().toLowerCase() === "ai chat"),
-    btnSources: $("#nav-sources") || $("#btnSources") || $$("button, a").find((b) => (b.textContent || "").trim().toLowerCase() === "sources"),
-    btnAbout: $("#nav-about") || $("#btnAbout") || $$("button, a").find((b) => (b.textContent || "").trim().toLowerCase() === "about"),
-
-    messages: $("#messages") || $("#chatMessages") || $("#terminal") || $(".messages"),
-    input: $("#chatInput") || $("#prompt") || $("input[type='text']") || $("textarea"),
-    sendBtn: $("#sendBtn") || $("#askBtn") || $$("button").find((b) => (b.textContent || "").trim().toLowerCase() === "ask"),
-
-    docsBadge: $("#docsBadge") || $("#docsLoaded") || $("[data-docs-badge]"),
-    bootLine: $("#bootLine") || $("#bootingLine") || $("[data-boot-line]"),
-
-    sourcesList: $("#sourcesList") || $("#sources") || $("[data-sources-list]"),
-  };
-
-  function setActiveNav() {
-    const activeClass = "active";
-    [dom.btnChat, dom.btnSources, dom.btnAbout].forEach((b) => b && b.classList.remove(activeClass));
-    if (state.view === "chat" && dom.btnChat) dom.btnChat.classList.add(activeClass);
-    if (state.view === "sources" && dom.btnSources) dom.btnSources.classList.add(activeClass);
-    if (state.view === "about" && dom.btnAbout) dom.btnAbout.classList.add(activeClass);
-  }
-
+  // ---------- navigation ----------
   function setView(view) {
     state.view = view;
-    setActiveNav();
-    if (dom.viewChat) dom.viewChat.style.display = view === "chat" ? "block" : "none";
-    if (dom.viewSources) dom.viewSources.style.display = view === "sources" ? "block" : "none";
-    if (dom.viewAbout) dom.viewAbout.style.display = view === "about" ? "block" : "none";
-    if (view === "sources") renderSources();
+
+    // nav active class
+    dom.navBtns.forEach((b) => b.classList.toggle("active", b.getAttribute("data-view") === view));
+
+    if (dom.viewChat) dom.viewChat.classList.toggle("hidden", view !== "chat");
+    if (dom.viewSources) dom.viewSources.classList.toggle("hidden", view !== "sources");
+    if (dom.viewAbout) dom.viewAbout.classList.toggle("hidden", view !== "about");
+
+    if (view === "sources") renderSourcesView();
   }
 
   function wireNav() {
-    if (dom.btnChat) dom.btnChat.addEventListener("click", () => setView("chat"));
-    if (dom.btnSources) dom.btnSources.addEventListener("click", () => setView("sources"));
-    if (dom.btnAbout) dom.btnAbout.addEventListener("click", () => setView("about"));
+    dom.navBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const view = btn.getAttribute("data-view") || "chat";
+        setView(view);
+      });
+    });
   }
 
+  // ---------- docs loading ----------
   function normalizeDocChunk(raw, idx) {
     const title = safeText(raw.title || raw.file || raw.source || raw.doc || "Untitled");
     const section = safeText(raw.section || raw.heading || raw.subheading || "");
     const text = safeText(raw.text || raw.content || raw.body || raw.chunk || "");
-    return { id: raw.id ?? idx, title, section, text };
+    const url = safeText(raw.url || raw.link || "");
+    return { id: raw.id ?? idx, title, section, text, url };
   }
 
   async function loadDocs() {
     try {
-      if (dom.bootLine) dom.bootLine.textContent = "Loading docs…";
+      if (dom.docsStatus) dom.docsStatus.textContent = "Loading docs…";
+
       const res = await fetch(`docs_index.json?cb=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`docs_index.json failed: ${res.status}`);
       const data = await res.json();
@@ -115,16 +136,16 @@
       state.ready = true;
 
       const n = state.docs.length;
-      if (dom.docsBadge) dom.docsBadge.textContent = `Docs loaded: ${n} chunks`;
-      if (dom.bootLine) dom.bootLine.textContent = n ? `Docs loaded: ${n} chunks.` : "Docs loaded, but 0 chunks found.";
+      if (dom.docsStatus) dom.docsStatus.textContent = `Docs loaded: ${n} chunks`;
     } catch (err) {
       state.ready = false;
-      if (dom.bootLine) dom.bootLine.textContent = `Docs load failed: ${err.message}`;
-      if (dom.docsBadge) dom.docsBadge.textContent = "Docs failed to load";
+      if (dom.docsStatus) dom.docsStatus.textContent = "Docs failed to load";
       console.error(err);
+      // Also show in sources view if user clicks it
     }
   }
 
+  // ---------- lightweight retrieval ----------
   function tokenize(str) {
     return safeText(str)
       .toLowerCase()
@@ -135,19 +156,22 @@
 
   function scoreChunk(qTokens, chunk) {
     if (!qTokens.length) return 0;
+
     const titleTokens = new Set(tokenize(chunk.title));
     const sectionTokens = new Set(tokenize(chunk.section));
-    const textSet = new Set(tokenize(chunk.text));
+    const textTokens = new Set(tokenize(chunk.text));
 
     let score = 0;
     for (const t of qTokens) {
       if (titleTokens.has(t)) score += 6;
       if (sectionTokens.has(t)) score += 4;
-      if (textSet.has(t)) score += 1;
+      if (textTokens.has(t)) score += 1;
     }
 
-    const len = clamp(chunk.text.length, 200, 2000);
-    score += score > 0 ? 2000 / len : 0;
+    // slight length normalization
+    const len = clamp(chunk.text.length, 200, 2200);
+    score += score > 0 ? 2200 / len : 0;
+
     return score;
   }
 
@@ -161,76 +185,147 @@
     return picked.length ? picked : state.docs.slice(0, k);
   }
 
-  function ensureMessagesBox() {
-    if (!dom.messages) {
-      const host = dom.viewChat || document.body;
-      dom.messages = el("div", { id: "messages", class: "messages" });
-      host.appendChild(dom.messages);
-    }
-  }
+  // ---------- rendering ----------
+  function addBubble(role, text, meta = {}) {
+    if (!dom.chatLog) return null;
 
-  function addMessage(role, text, meta = {}) {
-    ensureMessagesBox();
-    const name = role === "user" ? "YOU" : "GIGUS";
+    const wrapper = el("div", { class: `bubble ${role === "user" ? "user" : "ai"}` });
 
-    const wrapper = el("div", { class: `msg ${role}` });
+    const metaLine = el("div", { class: "meta" });
+    metaLine.textContent = role === "user" ? "YOU" : "GIGUS";
+    if (meta.tag) metaLine.textContent += ` • ${meta.tag}`;
+    wrapper.appendChild(metaLine);
 
-    const header = el("div", { class: "msg-header" }, [
-      el("span", { class: "msg-name", text: name }),
-      meta.tag ? el("span", { class: "msg-tag", text: meta.tag }) : el("span"),
-    ]);
-
-    const body = el("div", { class: "msg-body" });
+    const body = el("div", { class: "text" });
     body.textContent = safeText(text);
-
-    wrapper.appendChild(header);
     wrapper.appendChild(body);
 
-    // Followups (helper mode)
-    if (role === "assistant" && Array.isArray(meta.followups) && meta.followups.length) {
-      wrapper.appendChild(el("div", { class: "msg-cite-title", text: "Quick questions:" }));
-      const ul = el("ul", { class: "msg-cites" });
-      meta.followups.slice(0, 2).forEach((q) => ul.appendChild(el("li", { text: safeText(q) })));
-      wrapper.appendChild(ul);
+    // docs citations
+    if (role === "assistant" && meta.mode === "docs" && Array.isArray(meta.citations) && meta.citations.length) {
+      const cite = el("div", { class: "cite" });
+      const unique = dedupeCitations(meta.citations).slice(0, 3);
+      cite.innerHTML =
+        "Sources: " +
+        unique
+          .map((c) => `<code>${escapeHtml(c.section ? `${c.title} — ${c.section}` : c.title)}</code>`)
+          .join(" ");
+      wrapper.appendChild(cite);
     }
 
-    // Citations (docs mode)
-    if (role === "assistant" && Array.isArray(meta.citations) && meta.citations.length) {
-      wrapper.appendChild(el("div", { class: "msg-cite-title", text: "Sources:" }));
-      const ul = el("ul", { class: "msg-cites" });
-
-      // dedupe
-      const seen = new Set();
-      const unique = [];
-      for (const c of meta.citations) {
-        const t = safeText(c.title).trim();
-        const s = safeText(c.section).trim();
-        const key = `${t}__${s}`;
-        if (!t) continue;
-        if (!seen.has(key)) {
-          seen.add(key);
-          unique.push({ title: t, section: s });
-        }
-      }
-
-      unique.slice(0, 3).forEach((c) => {
-        ul.appendChild(el("li", { text: c.section ? `${c.title} — ${c.section}` : c.title }));
-      });
-      wrapper.appendChild(ul);
+    // helper followups
+    if (role === "assistant" && meta.mode === "helper" && Array.isArray(meta.followups) && meta.followups.length) {
+      const cite = el("div", { class: "cite" });
+      const qs = meta.followups.slice(0, 2);
+      cite.textContent = `Quick questions: ${qs.join(" • ")}`;
+      wrapper.appendChild(cite);
     }
 
-    dom.messages.appendChild(wrapper);
-    dom.messages.scrollTop = dom.messages.scrollHeight;
+    dom.chatLog.appendChild(wrapper);
+    dom.chatLog.scrollTop = dom.chatLog.scrollHeight;
     return wrapper;
   }
 
-  function setBusy(isBusy) {
-    if (dom.sendBtn) dom.sendBtn.disabled = isBusy;
-    if (dom.input) dom.input.disabled = isBusy;
+  function escapeHtml(s) {
+    return safeText(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
+  function dedupeCitations(citations) {
+    const seen = new Set();
+    const out = [];
+    for (const c of citations || []) {
+      const t = safeText(c.title).trim();
+      const s = safeText(c.section).trim();
+      if (!t) continue;
+      const key = `${t}__${s}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ title: t, section: s });
+    }
+    return out;
+  }
+
+  function renderAnswerPanel(out) {
+    if (!dom.answerText || !dom.answerModeBadge) return;
+
+    dom.answerText.textContent = safeText(out.answer);
+
+    // mode badge
+    const mode = out.mode === "docs" ? "docs" : "helper";
+    dom.answerModeBadge.textContent = mode === "docs" ? "DOCS" : "HELPER";
+    dom.answerModeBadge.className = `badge ${mode}`;
+
+    const cites = mode === "docs" ? dedupeCitations(out.citations).slice(0, 3) : [];
+    const followups = mode === "helper" ? (Array.isArray(out.followups) ? out.followups.slice(0, 2) : []) : [];
+
+    const hasMeta = cites.length > 0 || followups.length > 0;
+    if (dom.answerMeta) dom.answerMeta.style.display = hasMeta ? "flex" : "none";
+
+    if (dom.answerSources) {
+      dom.answerSources.innerHTML = "";
+      cites.forEach((c) => {
+        const li = document.createElement("li");
+        li.textContent = c.section ? `${c.title} — ${c.section}` : c.title;
+        dom.answerSources.appendChild(li);
+      });
+    }
+
+    if (dom.answerFollowups) {
+      dom.answerFollowups.innerHTML = "";
+      followups.forEach((q) => {
+        const chip = el("div", { class: "pill", text: q });
+        chip.style.cursor = "pointer";
+        chip.title = "Click to copy into input";
+        chip.addEventListener("click", () => {
+          if (dom.input) dom.input.value = q;
+          dom.input?.focus();
+        });
+        dom.answerFollowups.appendChild(chip);
+      });
+    }
+  }
+
+  function renderSourcesView() {
+    if (!dom.sourcesPre) return;
+
+    if (!state.ready) {
+      dom.sourcesPre.textContent = "Docs not loaded yet (or failed to load).";
+      return;
+    }
+
+    // show a compact overview (not full massive JSON)
+    const byTitle = new Map();
+    state.docs.forEach((c) => {
+      if (!byTitle.has(c.title)) byTitle.set(c.title, new Set());
+      byTitle.get(c.title).add(c.section || "(no section)");
+    });
+
+    const lines = [];
+    lines.push(`Docs chunks: ${state.docs.length}`);
+    lines.push("");
+    for (const [title, sectionsSet] of byTitle.entries()) {
+      const sections = Array.from(sectionsSet).slice(0, 20);
+      lines.push(`• ${title}`);
+      sections.forEach((s) => lines.push(`   - ${s}`));
+      if (sectionsSet.size > sections.length) lines.push(`   - … (${sectionsSet.size - sections.length} more)`);
+      lines.push("");
+    }
+
+    dom.sourcesPre.textContent = lines.join("\n").trim();
+  }
+
+  // ---------- server call ----------
   async function askServer(question) {
-    const chunks = pickTopChunks(question, 8);
+    const chunks = pickTopChunks(question, 8).map((c) => ({
+      title: c.title,
+      section: c.section,
+      text: c.text,
+      url: c.url,
+    }));
 
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -249,34 +344,13 @@
     };
   }
 
-  function renderSources() {
-    if (!dom.sourcesList) return;
-    dom.sourcesList.innerHTML = "";
-
-    if (!state.docs.length) {
-      dom.sourcesList.appendChild(el("div", { text: "No docs loaded yet." }));
-      return;
-    }
-
-    const byTitle = new Map();
-    state.docs.forEach((c) => {
-      if (!byTitle.has(c.title)) byTitle.set(c.title, []);
-      byTitle.get(c.title).push(c);
-    });
-
-    for (const [title, chunks] of byTitle.entries()) {
-      const box = el("div", { class: "source-card" });
-      box.appendChild(el("div", { class: "source-title", text: title }));
-      const ul = el("ul", { class: "source-sections" });
-      chunks.slice(0, 10).forEach((c) => {
-        const label = c.section ? c.section : "(no section)";
-        ul.appendChild(el("li", { text: label }));
-      });
-      box.appendChild(ul);
-      dom.sourcesList.appendChild(box);
-    }
+  // ---------- busy state ----------
+  function setBusy(isBusy) {
+    if (dom.sendBtn) dom.sendBtn.disabled = isBusy;
+    if (dom.input) dom.input.disabled = isBusy;
   }
 
+  // ---------- chat wiring ----------
   function wireChat() {
     if (!dom.input || !dom.sendBtn) return;
 
@@ -284,53 +358,62 @@
       const q = safeText(dom.input.value).trim();
       if (!q) return;
 
+      if (!state.ready) {
+        addBubble("assistant", "Docs are not loaded yet. Refresh the page or check docs_index.json is accessible.", {
+          mode: "helper",
+        });
+        return;
+      }
+
       dom.input.value = "";
       setBusy(true);
 
-      addMessage("user", q);
-      const typing = addMessage("assistant", "Thinking…", { tag: "working" });
+      addBubble("user", q);
+
+      const thinking = addBubble("assistant", "Thinking…", { tag: "working" });
 
       try {
-        if (!state.ready) throw new Error("Docs not loaded yet. Check docs_index.json is accessible.");
-
         const out = await askServer(q);
 
-        // Replace typing message body
-        typing.querySelector(".msg-tag")?.remove();
-        typing.querySelector(".msg-body").textContent = out.answer;
+        // update terminal bubble
+        if (thinking) {
+          const body = thinking.querySelector(".text");
+          if (body) body.textContent = out.answer;
 
-        if (out.mode === "helper" && out.followups.length) {
-          typing.appendChild(el("div", { class: "msg-cite-title", text: "Quick questions:" }));
-          const ul = el("ul", { class: "msg-cites" });
-          out.followups.slice(0, 2).forEach((x) => ul.appendChild(el("li", { text: safeText(x) })));
-          typing.appendChild(ul);
-        }
+          // remove tag line if present
+          const meta = thinking.querySelector(".meta");
+          if (meta) meta.textContent = "GIGUS";
 
-        if (out.mode === "docs" && out.citations.length) {
-          typing.appendChild(el("div", { class: "msg-cite-title", text: "Sources:" }));
-          const ul = el("ul", { class: "msg-cites" });
-
-          const seen = new Set();
-          const unique = [];
-          for (const c of out.citations) {
-            const t = safeText(c.title).trim();
-            const s = safeText(c.section).trim();
-            const key = `${t}__${s}`;
-            if (!t) continue;
-            if (!seen.has(key)) { seen.add(key); unique.push({ title: t, section: s }); }
-          }
-
-          unique.slice(0, 3).forEach((c) => {
-            ul.appendChild(el("li", { text: c.section ? `${c.title} — ${c.section}` : c.title }));
+          // append citations/followups onto this bubble
+          // easiest: re-render by adding a new bubble and removing old
+          thinking.remove();
+          addBubble("assistant", out.answer, {
+            mode: out.mode,
+            citations: out.citations,
+            followups: out.followups,
           });
-          typing.appendChild(ul);
+        } else {
+          addBubble("assistant", out.answer, {
+            mode: out.mode,
+            citations: out.citations,
+            followups: out.followups,
+          });
         }
+
+        // update answer panel (latest only)
+        renderAnswerPanel(out);
       } catch (err) {
-        typing.querySelector(".msg-tag")?.remove();
-        typing.querySelector(".msg-body").textContent = `Error: ${err.message}`;
+        if (thinking) {
+          const body = thinking.querySelector(".text");
+          if (body) body.textContent = `Error: ${err.message}`;
+          const meta = thinking.querySelector(".meta");
+          if (meta) meta.textContent = "GIGUS";
+        } else {
+          addBubble("assistant", `Error: ${err.message}`, { mode: "helper" });
+        }
       } finally {
         setBusy(false);
-        dom.input.focus();
+        dom.input?.focus();
       }
     };
 
@@ -343,6 +426,7 @@
     });
   }
 
+  // ---------- init ----------
   async function init() {
     killCommandPalette();
     wireNav();
@@ -351,11 +435,18 @@
 
     await loadDocs();
 
-    if (dom.messages && dom.messages.childElementCount === 0) {
-      addMessage(
+    // seed answer panel
+    if (dom.answerText) {
+      dom.answerText.textContent = "Ask a question to see the answer here.";
+    }
+    if (dom.answerMeta) dom.answerMeta.style.display = "none";
+
+    // optional: welcome bubble in terminal if empty
+    if (dom.chatLog && dom.chatLog.childElementCount === 0) {
+      addBubble(
         "assistant",
         "Ask a Gigaverse question and I’ll answer using the docs. If it’s not in the docs yet, I’ll guide you to the right place.",
-        { }
+        { mode: "helper" }
       );
     }
   }
