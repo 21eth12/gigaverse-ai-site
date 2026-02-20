@@ -390,5 +390,40 @@
   "section": "Progress And Quality Matrix",
   "url": "https://x.com/Aizcalibur/status/1988193385484853636",
   "text": "Quality is a Progress dependent nurturing factor and cannot increase without Progress. Comfort directly affects Quality output: 1 Comfort equals 20% of Progress as Quality per day, while 5 Comfort equals 100% of Progress as Quality. Increasing Comfort through Incubes significantly improves Quality yield at higher Temperature levels."
+},
+{
+  "id": "tip-valerka-fishing-setup-01",
+  "title": "Pro Tips — Event Fishing Progression",
+  "section": "Fishing > Skill Priority",
+  "url": "https://x.com/valerka_mops/status/1979154689674399761",
+  "text": "In fishing events, leveling Weed Dealer early is critical for progression. Each level of Weed Dealer increases the selling value of fish by 5%. At Level 3, this results in +15% sell value, allowing players to gain more Seaweed and level other fishing skills faster."
+},
+{
+  "id": "tip-valerka-fishing-mistake-02",
+  "title": "Pro Tips — Event Fishing Progression",
+  "section": "Fishing > Early Mistakes",
+  "url": "https://x.com/valerka_mops/status/1979154689674399761",
+  "text": "Focusing on Dual Yielding too early can significantly slow down fishing progression. Players who prioritize Dual Yielding before Weed Dealer may experience slower leveling due to reduced fish selling value, resulting in less Seaweed income to invest in other skills."
+},
+{
+  "id": "tip-valerka-fishing-order-03",
+  "title": "Pro Tips — Event Fishing Progression",
+  "section": "Fishing > Optimal Upgrade Order",
+  "url": "https://x.com/valerka_mops/status/1979154689674399761",
+  "text": "Recommended fishing skill upgrade order for events: Stamina Level 2 → Weed Dealer Level 3 → Stamina Level 3 → Dual Yielding Level 3 → Jebaitor Level 3. Luck Level 3 is optional, but most top event players prefer leveling Jebaitor instead."
+},
+{
+  "id": "tip-valerka-fishing-skills-04",
+  "title": "Pro Tips — Event Fishing Progression",
+  "section": "Fishing > Skill Effects",
+  "url": "https://x.com/valerka_mops/status/1979154689674399761",
+  "text": "Stamina increases starting mana by 1 per upgrade, improving catch consistency. Dual Yielding increases the chance of catching two of the same fish by approximately 2% per upgrade, which is especially valuable during fishing events. Jebaitor increases the chance of not using a daily cast by about 2.25% per upgrade."
+},
+{
+  "id": "tip-valerka-fishing-luck-05",
+  "title": "Pro Tips — Event Fishing Progression",
+  "section": "Fishing > Optional Skills",
+  "url": "https://x.com/valerka_mops/status/1979154689674399761",
+  "text": "Luck increases the chance of catching higher rarity fish by approximately 1.25% per upgrade. While useful, many top event players prioritize Jebaitor for better cast efficiency in competitive fishing events."
 }
 ]
