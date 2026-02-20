@@ -348,5 +348,47 @@
     "section": "Crafting and stations",
     "url": "https://glhfers.gitbook.io/gigaverse/crafting-and-stations/workbench/charm",
     "text": "Charms can be crafted at the Workbench, and equipped at the Gear Station.\n\nCharms have different roles and bonuses. Orbs & Necklaces can be crafted into Charms which have special effects, giving you an advantage in combat.\n\nRarity\n\nHigher rarity Charms have better durability and may have stronger effects\n\nCharms get a random rarity upon craft, based on the odds below:\n\n(50%) Common\n\n(30%) Uncommon\n\n(15%) Rare\n\n(5%) Epic\n\nDurability\n\nCharms degrade with each Dungetron run until their durability is 0. Once broken, charm effects no longer work. They must be repaired using resources at the Gear Station to begin functioning again.\n\nRepairs\n\nYou can repair Charms at the Gear Station for a cost.\n\nWARNING: Current Charms can only be repaired two times before permanently breaking. They cannot be restored like head & body gear.\n\nLast updated 11 days ago"
-  }
+  },
+  {
+  "id": "tip-aiz-gigling-overview-01",
+  "title": "Pro Tips — Gigling Egg Hatching",
+  "section": "Overview",
+  "url": "https://x.com/Aizcalibur/status/1988193385484853636",
+  "text": "Giglings are the pet collection of Gigaverse and are acquired through the egg hatching process. Each egg has three traits while hatching: Progress, Quality, and Fate. Progress is the daily rate at which the egg is hatched. Temperature is used to control Progress rate. At 100% Progress, players can choose to hatch, trade, or keep the egg."
+},
+{
+  "id": "tip-aiz-gigling-traits-02",
+  "title": "Pro Tips — Gigling Egg Hatching",
+  "section": "Hatching Traits",
+  "url": "https://x.com/Aizcalibur/status/1988193385484853636",
+  "text": "Progress is primarily influenced by Temperature and increases daily up to a maximum rate of approximately 3%. Quality is influenced by Comfort and determines the final rarity of the hatched Gigling. Quality ranges from 1 to 5 points and cannot be higher than Progress. Each point of Comfort adds 20% Quality per day to the Progress rate."
+},
+{
+  "id": "tip-aiz-gigling-materials-03",
+  "title": "Pro Tips — Gigling Egg Hatching",
+  "section": "Materials",
+  "url": "https://x.com/Aizcalibur/status/1988193385484853636",
+  "text": "There are five base materials used in egg hatching: Wood, Coal, Bones, Fibre, and Stone. These can be converted into hatching materials. Biofuels are used to increase Temperature, which boosts Progress. Incubes are used to increase Comfort, which boosts Quality. Each hatching material can be traded for base materials acquired in-game."
+},
+{
+  "id": "tip-aiz-gigling-drops-04",
+  "title": "Pro Tips — Gigling Egg Hatching",
+  "section": "Where To Get Materials",
+  "url": "https://x.com/Aizcalibur/status/1988193385484853636",
+  "text": "Most base hatching materials are dropped in the lower levels of the Dungeotron Underhaul. Wood and Fibre can be found on Floor 1 rooms, Coal on Floor 3 rooms, and Bones on Floor 2 rooms. Some materials can also be obtained from Pots outside the dungeon."
+},
+{
+  "id": "tip-aiz-gigling-kits-05",
+  "title": "Pro Tips — Gigling Egg Hatching",
+  "section": "Hatchard Kit",
+  "url": "https://x.com/Aizcalibur/status/1988193385484853636",
+  "text": "Vilhelm Hatchard offers deals to trade items for Hatchard Kits. Hatchard Kits have randomized rewards including Biofuel, Biofuel+, Incube, Incube+, and Incube++. Loot odds may include 30% for 3x Biofuel, 20% for 2x Biofuel+, 25% for 1x Incube, 15% for 1x Incube+, and 10% for 1x Incube++."
+},
+{
+  "id": "tip-aiz-gigling-matrix-06",
+  "title": "Pro Tips — Gigling Egg Hatching",
+  "section": "Progress And Quality Matrix",
+  "url": "https://x.com/Aizcalibur/status/1988193385484853636",
+  "text": "Quality is a Progress dependent nurturing factor and cannot increase without Progress. Comfort directly affects Quality output: 1 Comfort equals 20% of Progress as Quality per day, while 5 Comfort equals 100% of Progress as Quality. Increasing Comfort through Incubes significantly improves Quality yield at higher Temperature levels."
+}
 ]
