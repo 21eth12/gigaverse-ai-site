@@ -1,16 +1,72 @@
-// /api/chat.js — Gigaverse AI (Groq) — Docs-first (PRO retrieval + evidence gating)
+// /api/chat.js — Gigaverse AI (Groq) — Docs-first (PRO retrieval)
 // Expects POST { question: string, chunks?: [{title, section, text, url?}] }
 // Returns JSON: { mode, answer, followups, citations }
+
+// -------------------- Simple In-Memory Rate Limiter --------------------
+// 6 requests per rolling 60 seconds per IP.
+// After the 6th request, the 7th gets blocked until enough time passes.
+const rateLimitMap = new Map();
+
+function rateLimit(ip, limit = 6, windowMs = 60_000) {
+  const now = Date.now();
+
+  if (!rateLimitMap.has(ip)) rateLimitMap.set(ip, []);
+  const timestamps = rateLimitMap.get(ip);
+
+  // keep only timestamps within the window
+  const recent = timestamps.filter((ts) => now - ts < windowMs);
+
+  if (recent.length >= limit) {
+    const retryAfterSec = Math.ceil((windowMs - (now - recent[0])) / 1000);
+    rateLimitMap.set(ip, recent); // store cleaned list
+    return { allowed: false, retryAfterSec };
+  }
+
+  recent.push(now);
+  rateLimitMap.set(ip, recent);
+  return { allowed: true, retryAfterSec: 0 };
+}
+
+// optional: light cleanup to prevent unbounded growth
+function cleanupRateLimitMap(maxIps = 5000) {
+  if (rateLimitMap.size <= maxIps) return;
+  // drop oldest IP entries (best-effort)
+  const entries = Array.from(rateLimitMap.entries());
+  entries.sort((a, b) => (a[1]?.[0] ?? 0) - (b[1]?.[0] ?? 0));
+  const toDelete = Math.max(0, entries.length - maxIps);
+  for (let i = 0; i < toDelete; i++) rateLimitMap.delete(entries[i][0]);
+}
+
+// ----------------------------------------------------------------------
 
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
+
+    // ---- Rate Limiting (6 per minute per IP) ----
+    const ip =
+      (req.headers["x-forwarded-for"] || "")
+        .toString()
+        .split(",")[0]
+        .trim() ||
+      (req.socket?.remoteAddress || "").toString() ||
+      "unknown";
+
+    const rl = rateLimit(ip, 6, 60_000);
+    if (!rl.allowed) {
+      res.setHeader("Retry-After", String(rl.retryAfterSec));
+      return res.status(429).json({
+        error: `Rate limit exceeded. You can ask 6 questions per minute. Try again in ${rl.retryAfterSec} seconds.`,
+      });
+    }
+    cleanupRateLimitMap(5000);
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "Missing GROQ_API_KEY in Vercel env vars" });
 
     const body = req.body || {};
     const question = typeof body.question === "string" ? body.question.trim() : "";
+
     if (!question) return res.status(400).json({ error: "Missing 'question' string" });
 
     // ✅ caps (prevents abuse + token explosions)
@@ -35,28 +91,6 @@ export default async function handler(req, res) {
     function clampText(t, max) {
       const s = typeof t === "string" ? t : "";
       return s.length > max ? s.slice(0, max) : s;
-    }
-
-    // ✅ Evidence gate: do the chunks contain *meaningful* overlap with the question?
-    // This prevents "docs mode" hallucinations when the retrieved chunk is only loosely related.
-    function evidenceScore(questionRaw, chunk) {
-      const qTokens = normalize(questionRaw)
-        .split(" ")
-        .filter((w) => w.length >= 4); // slightly stricter than qWords
-
-      const title = normalize(chunk?.title || "");
-      const section = normalize(chunk?.section || "");
-      const text = normalize(chunk?.text || "");
-
-      if (!qTokens.length) return 0;
-
-      let hits = 0;
-      for (const w of qTokens) {
-        if (title.includes(w)) hits += 3;
-        if (section.includes(w)) hits += 2;
-        if (text.includes(w)) hits += 1;
-      }
-      return hits;
     }
 
     function scoreChunk(chunk) {
@@ -129,30 +163,17 @@ export default async function handler(req, res) {
       return [];
     }
 
-    // -----------------------------
-    // Retrieval: client chunks -> rerank -> evidence gate -> fallback to site index
-    // -----------------------------
+    // Client chunks (rerank)
     const clientChunks = Array.isArray(body.chunks) ? body.chunks : [];
     let picked = rerankAndPick(clientChunks, 6);
 
-    // Evidence on client-picked chunks
-    let totalEvidence = picked.reduce((sum, c) => sum + evidenceScore(qRaw, c), 0);
-
-    // If client chunks are weak or empty, fetch full docs index and rerank again
-    // (the evidence gate prevents "loose match => docs hallucination")
-    const EVIDENCE_MIN = 7; // tune: 5–10 depending on how strict you want it
-    const HAS_REAL_DOC_MATCH = picked.length > 0 && totalEvidence >= EVIDENCE_MIN;
-
-    if (picked.length === 0 || !HAS_REAL_DOC_MATCH) {
+    // Fallback to docs_index.json only if needed
+    if (picked.length === 0) {
       const docsIndex = await fetchDocsIndexFromSite();
       const capped = docsIndex.length > 7000 ? docsIndex.slice(0, 7000) : docsIndex;
       picked = rerankAndPick(capped, 6);
-      totalEvidence = picked.reduce((sum, c) => sum + evidenceScore(qRaw, c), 0);
     }
 
-    const FINAL_HAS_DOC_EVIDENCE = picked.length > 0 && totalEvidence >= EVIDENCE_MIN;
-
-    // Build context (clean + structured)
     const context = picked
       .map((c, i) => {
         const title = (c.title || "Untitled").trim();
@@ -171,9 +192,6 @@ export default async function handler(req, res) {
       })
       .join("\n\n---\n\n");
 
-    // -----------------------------
-    // Model prompting (Docs-first + strictness)
-    // -----------------------------
     const SYSTEM = `
 You are Gigaverse AI, the official AI assistant for the Gigaverse community.
 
@@ -189,7 +207,6 @@ Behavior (Docs-first):
 2) If SOURCES do not contain the answer, still help: give practical guidance and ask 1–2 targeted follow-up questions.
    - In that case, be explicit: “I don’t see this explicitly in the docs I have loaded.”
 3) Never invent Gigaverse-specific mechanics that are not supported by SOURCES.
-4) If the user asks for a definition of a general English word and the docs don’t define it, switch to helper mode.
 
 Output (JSON only):
 {
@@ -248,20 +265,7 @@ Return JSON only.
       parsed = { mode: "helper", answer: content, followups: [], citations: [] };
     }
 
-    // ✅ HARD GATE: if we don't have enough evidence, we force helper mode + no citations
-    if (!FINAL_HAS_DOC_EVIDENCE) {
-      parsed = {
-        mode: "helper",
-        answer:
-          typeof parsed?.answer === "string" && parsed.answer.trim()
-            ? parsed.answer.trim()
-            : "I don’t see this explicitly in the docs I have loaded.",
-        followups: Array.isArray(parsed?.followups) ? parsed.followups : [],
-        citations: [],
-      };
-    }
-
-    const mode = parsed?.mode === "docs" && FINAL_HAS_DOC_EVIDENCE ? "docs" : "helper";
+    const mode = parsed?.mode === "docs" ? "docs" : "helper";
 
     const answer =
       typeof parsed?.answer === "string" && parsed.answer.trim()
@@ -293,8 +297,6 @@ Return JSON only.
       answer,
       followups,
       citations: unique.slice(0, 3),
-      // Optional debug you can surface later in UI (remove if you want)
-      // evidence: { totalEvidence, threshold: EVIDENCE_MIN },
     });
   } catch (err) {
     return res.status(500).json({ error: err?.message || "Server error" });
