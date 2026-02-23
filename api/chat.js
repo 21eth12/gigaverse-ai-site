@@ -1,24 +1,21 @@
-// /api/chat.js — Gigaverse AI (Groq) — Docs-first + Conversational + "What Next" mode
+// /api/chat.js — Gigaverse AI (Groq) — Docs-first + Conversational + "What Next" + Onboarding
 // Expects POST { question: string, chunks?: [{title, section, text, url?}] }
 // Returns JSON: { mode, answer, followups, citations }
 
-// -------------------- Simple In-Memory Rate Limiter --------------------
-// 6 requests per rolling 60 seconds per IP.
-// After the 6th request, the 7th gets blocked until enough time passes.
 const rateLimitMap = new Map();
 
+// 6 requests per rolling 60 seconds per IP.
 function rateLimit(ip, limit = 6, windowMs = 60_000) {
   const now = Date.now();
 
   if (!rateLimitMap.has(ip)) rateLimitMap.set(ip, []);
   const timestamps = rateLimitMap.get(ip);
 
-  // keep only timestamps within the window
   const recent = timestamps.filter((ts) => now - ts < windowMs);
 
   if (recent.length >= limit) {
     const retryAfterSec = Math.ceil((windowMs - (now - recent[0])) / 1000);
-    rateLimitMap.set(ip, recent); // store cleaned list
+    rateLimitMap.set(ip, recent);
     return { allowed: false, retryAfterSec };
   }
 
@@ -27,16 +24,13 @@ function rateLimit(ip, limit = 6, windowMs = 60_000) {
   return { allowed: true, retryAfterSec: 0 };
 }
 
-// optional: light cleanup to prevent unbounded growth
 function cleanupRateLimitMap(maxIps = 5000) {
   if (rateLimitMap.size <= maxIps) return;
-  // drop oldest IP entries (best-effort)
   const entries = Array.from(rateLimitMap.entries());
   entries.sort((a, b) => (a[1]?.[0] ?? 0) - (b[1]?.[0] ?? 0));
   const toDelete = Math.max(0, entries.length - maxIps);
   for (let i = 0; i < toDelete; i++) rateLimitMap.delete(entries[i][0]);
 }
-// ----------------------------------------------------------------------
 
 function normalize(s) {
   return (typeof s === "string" ? s : "")
@@ -51,10 +45,60 @@ function clampText(t, max) {
   return s.length > max ? s.slice(0, max) : s;
 }
 
-// Detect short greetings / small talk so we don’t answer “not in docs”
+// NEW: detect onboarding / "how do i play" questions
+function isOnboarding(q) {
+  const t = normalize(q);
+  const triggers = [
+    "how do i play",
+    "how to play",
+    "how do i start",
+    "how to start",
+    "where do i start",
+    "where do i begin",
+    "how do i begin",
+    "im new",
+    "i am new",
+    "new to the game",
+    "how do i get started",
+    "getting started",
+  ];
+  return triggers.some((p) => t.includes(p));
+}
+
+// Detect very short greetings / small talk so we don’t answer “not in docs”
 function isSmallTalk(q) {
   const t = normalize(q);
   if (!t) return true;
+
+  // ✅ IMPORTANT: if it looks like a real gameplay question, it's NOT small talk.
+  // This prevents "how do i play" being treated like "hey".
+  const gameplayIntentWords = [
+    "play",
+    "start",
+    "begin",
+    "progress",
+    "level",
+    "build",
+    "farm",
+    "get",
+    "earn",
+    "craft",
+    "fish",
+    "dungeon",
+    "trade",
+    "market",
+    "egg",
+    "giggling",
+    "drops",
+    "boss",
+    "gear",
+    "xp",
+    "where",
+    "how",
+    "what",
+  ];
+  const looksGameplay = gameplayIntentWords.some((w) => t.includes(w));
+  if (looksGameplay && t.length >= 6) return false;
 
   const small = new Set([
     "hi",
@@ -122,11 +166,10 @@ function isWhatNext(q) {
   return triggers.some((p) => t.includes(p));
 }
 
-// Light extraction of player's level + focus from text (optional but helps "what next")
+// Light extraction of player's level + focus from text
 function extractPlayerSignals(q) {
   const t = normalize(q);
 
-  // level patterns
   let level = null;
   const m1 = t.match(/\blevel\s+(\d{1,3})\b/);
   const m2 = t.match(/\blvl\s+(\d{1,3})\b/);
@@ -135,7 +178,6 @@ function extractPlayerSignals(q) {
   else if (m2) level = parseInt(m2[1], 10);
   else if (m3) level = parseInt(m3[1], 10);
 
-  // focus area detection
   let focus = null;
   if (t.includes("dungeon")) focus = "dungeons";
   else if (t.includes("fish")) focus = "fishing";
@@ -143,11 +185,9 @@ function extractPlayerSignals(q) {
   else if (t.includes("egg") || t.includes("giggling")) focus = "eggs";
   else if (t.includes("trade") || t.includes("market")) focus = "trading";
 
-  // event vs dungeon focus
   let mode = null;
   if (t.includes("event")) mode = "event";
   if (t.includes("dungeon")) {
-    // if both appear, keep what was explicitly stated last (simple heuristic)
     const lastEvent = t.lastIndexOf("event");
     const lastDungeon = t.lastIndexOf("dungeon");
     if (lastDungeon > lastEvent) mode = "dungeon";
@@ -186,7 +226,7 @@ export default async function handler(req, res) {
     const question = typeof body.question === "string" ? body.question.trim() : "";
     if (!question) return res.status(400).json({ error: "Missing 'question' string" });
 
-    // ✅ caps (prevents abuse + token explosions)
+    // ✅ caps
     const QUESTION_MAX = 900;
     const CHUNKS_MAX = 12;
     const CHUNK_TEXT_MAX = 2400;
@@ -195,9 +235,11 @@ export default async function handler(req, res) {
     const q = normalize(qRaw);
     const qWords = q.split(" ").filter((w) => w.length >= 3);
 
+    const onboarding = isOnboarding(qRaw);
+    const wn = isWhatNext(qRaw);
+
     // -------------------- Small talk (pre-model) --------------------
-    // Don’t ever say “not in docs” for greetings or “how are you”.
-    if (isSmallTalk(qRaw)) {
+    if (!onboarding && !wn && isSmallTalk(qRaw)) {
       const isWho = /(who are you|what can you do)/.test(q);
       const isHow = /(how are you)/.test(q);
 
@@ -210,21 +252,17 @@ export default async function handler(req, res) {
       return res.status(200).json({
         mode: "helper",
         answer,
-        followups: isWho
-          ? ["What part of the game are you on right now?", "Do you want tips for dungeons, fishing, crafting, eggs/gigglings, or trading?"]
-          : ["What part of the game are you on right now?", "Dungeon-focused or event-focused today?"],
+        followups: [
+          "Are you more into dungeons, fishing, crafting, eggs/gigglings, or trading?",
+          "What level are you right now?",
+        ],
         citations: [],
       });
     }
 
     // -------------------- “What Next?” (pre-model guardrail) --------------------
-    // If user asks “what should I do / how to progress” and we don’t have enough info,
-    // ask the 3 sticky questions in a friendly way.
-    const wn = isWhatNext(qRaw);
     if (wn) {
       const sig = extractPlayerSignals(qRaw);
-
-      // If we’re missing important info, ask for it directly (feels human, avoids generic replies)
       const needLevel = !sig.level;
       const needFocus = !sig.focus;
       const needMode = !sig.mode;
@@ -232,20 +270,18 @@ export default async function handler(req, res) {
       if (needLevel || needFocus || needMode) {
         const questions = [];
         if (needLevel) questions.push("What level are you?");
-        if (needFocus) questions.push("What are you focusing on right now: Dungeons / Fishing / Crafting / Eggs (Gigglings) / Trading?");
+        if (needFocus) questions.push("What are you focusing on: Dungeons / Fishing / Crafting / Eggs (Gigglings) / Trading?");
         if (needMode) questions.push("Are you event-focused or dungeon-focused?");
 
         return res.status(200).json({
           mode: "helper",
           answer:
-            `I’ve got you 👊\n\n` +
-            `To give you a clean “what next” plan, tell me:\n` +
+            `I’ve got you 👊\n\nTo give you a clean “what next” plan, tell me:\n` +
             questions.map((x, i) => `${i + 1}) ${x}`).join("\n"),
           followups: questions.slice(0, 3),
           citations: [],
         });
       }
-      // If user already provided signals, we let the model answer with SOURCES + good structure.
     }
 
     // -------------------- Retrieval + Rerank --------------------
@@ -260,26 +296,22 @@ export default async function handler(req, res) {
 
       let score = 0;
 
-      // strongest: full-question substring match
       if (q && text.includes(q)) score += 30;
       if (q && title.includes(q)) score += 24;
       if (q && section.includes(q)) score += 16;
 
-      // word-level scoring (title/section weighted)
       for (const w of qWords) {
         if (title.includes(w)) score += 6;
         if (section.includes(w)) score += 4;
         if (text.includes(w)) score += 1;
       }
 
-      // intent boost
       for (const iw of intentWords) {
         if (!q.includes(iw)) continue;
         if (title.includes(iw) || section.includes(iw)) score += 4;
         else if (text.includes(iw)) score += 1;
       }
 
-      // tiny chunks often junk
       const len = (chunk?.text || "").length;
       if (len > 0 && len < 140) score -= 4;
 
@@ -321,11 +353,9 @@ export default async function handler(req, res) {
       return [];
     }
 
-    // Client chunks (rerank)
     const clientChunks = Array.isArray(body.chunks) ? body.chunks : [];
     let picked = rerankAndPick(clientChunks, 6);
 
-    // Fallback to docs_index.json only if needed
     if (picked.length === 0) {
       const docsIndex = await fetchDocsIndexFromSite();
       const capped = docsIndex.length > 7000 ? docsIndex.slice(0, 7000) : docsIndex;
@@ -354,27 +384,29 @@ export default async function handler(req, res) {
     const SYSTEM = `
 You are Gigaverse AI, the official AI assistant for the Gigaverse community.
 
-Voice (VERY IMPORTANT):
-- Sound like a friendly, experienced player (warm, confident, not corporate).
-- Keep it natural: short sentences, simple words, no “consider focusing”.
-- Never lecture. Never sound like a helpdesk bot.
-- If the user is new, give a quick starter plan.
+Tone:
+- Warm, confident, and human (like a helpful pro player).
+- Short and clear. No robotic refusal loops.
+- No sarcasm, no roleplay.
 
-Docs-first rules:
+Docs-first:
 1) If SOURCES contain the answer, use them and cite them.
-2) If SOURCES do not contain the answer, be honest: “I don’t see this explicitly in the docs I have loaded.” Then give best-practice guidance.
+2) If SOURCES do not contain the answer, say: “I don’t see this explicitly in the docs I have loaded.” then give best-practice guidance.
 3) Never invent Gigaverse-specific mechanics not supported by SOURCES.
 
-Answer format (when it’s a game question):
-- 1 line: direct answer / direction
-- Then: 3–6 bullet steps or tips
-- Then: 1 common mistake to avoid (if relevant)
-- Then: 0–2 follow-up questions (only if needed)
+Communication rules:
+- Always start with a quick helpful summary line.
+- Then give 3–7 bullets with steps/tips.
+- If the question is vague, ask 1–2 targeted questions max (not generic “clarify”).
 
-“What should I do next?” mode:
-- If user asks what to do / progress / focus:
-  Ask up to 3 short questions: level, focus area (Dungeons/Fishing/Crafting/Eggs/Trading), event vs dungeon.
-  If they already gave it, don’t ask again—give a plan in 3 steps.
+Onboarding ("how do I play/start"):
+- Give a beginner starter plan (very practical).
+- Ask 1–2 small questions to personalize: level + preferred focus (dungeons/fishing/crafting/eggs/trading).
+
+"What Should I Do Next?" mode:
+- If user asks what to focus on / progress / what next:
+  Ask up to 3 short questions: (1) level, (2) focus area, (3) event vs dungeon.
+  If user already provided these, do NOT ask again—give a 3-step plan.
 
 Output JSON only:
 {
@@ -385,8 +417,10 @@ Output JSON only:
 }
 `.trim();
 
-    const whatNextHint = wn
-      ? `\nNOTE: This is a "what next" / progression request. Follow the "What should I do next?" behavior.\n`
+    const extraHint = onboarding
+      ? `\nNOTE: This is an onboarding / "how do I play" request. Use the onboarding behavior.\n`
+      : wn
+      ? `\nNOTE: This is a "what next" / progression request. Use the "What Should I Do Next?" behavior.\n`
       : "";
 
     const userPrompt = `
@@ -395,12 +429,12 @@ ${context || "(no sources matched)"}
 
 USER QUESTION:
 ${qRaw}
-${whatNextHint}
+${extraHint}
 
 Rules:
 - If SOURCES contain the answer, mode="docs" and include up to 3 citations (title + section).
 - If SOURCES do NOT contain the answer, mode="helper", citations must be [].
-- Followups: include 0–2 questions only, unless it's "what next" mode (then up to 3).
+- Followups: include 0–2 questions only, unless it's "what next" (then up to 3).
 Return JSON only.
 `.trim();
 
@@ -413,7 +447,7 @@ Return JSON only.
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         temperature: 0.25,
-        max_tokens: 700,
+        max_tokens: 750,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM },
