@@ -27,6 +27,27 @@
     return node;
   }
 
+  // ✅ NEW: stable per-browser sessionId (for memory in /api/chat)
+  function getSessionId() {
+    try {
+      let sid = localStorage.getItem("gigaverse_sid");
+      if (!sid) {
+        const uuid =
+          (globalThis.crypto && typeof crypto.randomUUID === "function"
+            ? crypto.randomUUID()
+            : Math.random().toString(36).slice(2)) + "-" + Date.now();
+        sid = uuid;
+        localStorage.setItem("gigaverse_sid", sid);
+      }
+      return sid;
+    } catch {
+      // if localStorage blocked, fall back to ephemeral
+      return "anon-" + Math.random().toString(36).slice(2) + "-" + Date.now();
+    }
+  }
+
+  const SESSION_ID = getSessionId();
+
   // ---------- app state ----------
   const state = {
     docs: [],
@@ -330,7 +351,8 @@
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, chunks }),
+      // ✅ NEW: include sessionId for memory
+      body: JSON.stringify({ question, chunks, sessionId: SESSION_ID }),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -377,15 +399,6 @@
 
         // update terminal bubble
         if (thinking) {
-          const body = thinking.querySelector(".text");
-          if (body) body.textContent = out.answer;
-
-          // remove tag line if present
-          const meta = thinking.querySelector(".meta");
-          if (meta) meta.textContent = "GIGUS";
-
-          // append citations/followups onto this bubble
-          // easiest: re-render by adding a new bubble and removing old
           thinking.remove();
           addBubble("assistant", out.answer, {
             mode: out.mode,
