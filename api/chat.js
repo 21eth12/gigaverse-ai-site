@@ -1,7 +1,9 @@
-// /api/chat.js — Gigaverse AI (Groq) — Docs-first + Conversational + "What Next" + Onboarding
+// /api/chat.js — Gigaverse AI (Groq)
+// Docs-first + Conversational + "What Next" mode + 6/min/IP rate limit
 // Expects POST { question: string, chunks?: [{title, section, text, url?}] }
 // Returns JSON: { mode, answer, followups, citations }
 
+// -------------------- Simple In-Memory Rate Limiter --------------------
 const rateLimitMap = new Map();
 
 // 6 requests per rolling 60 seconds per IP.
@@ -32,6 +34,7 @@ function cleanupRateLimitMap(maxIps = 5000) {
   for (let i = 0; i < toDelete; i++) rateLimitMap.delete(entries[i][0]);
 }
 
+// -------------------- Helpers --------------------
 function normalize(s) {
   return (typeof s === "string" ? s : "")
     .toLowerCase()
@@ -45,67 +48,87 @@ function clampText(t, max) {
   return s.length > max ? s.slice(0, max) : s;
 }
 
-// NEW: detect onboarding / "how do i play" questions
-function isOnboarding(q) {
-  const t = normalize(q);
-  const triggers = [
+function getIp(req) {
+  return (
+    (req.headers["x-forwarded-for"] || "")
+      .toString()
+      .split(",")[0]
+      .trim() ||
+    (req.socket?.remoteAddress || "").toString() ||
+    "unknown"
+  );
+}
+
+function containsAny(hay, arr) {
+  return arr.some((k) => hay.includes(k));
+}
+
+// Detect very short greetings / acknowledgements so we don’t answer “not in docs”
+function classifyChitChat(qRaw) {
+  const t = normalize(qRaw);
+  if (!t) return "empty";
+
+  // If it contains real game-intent verbs, DO NOT treat as small talk
+  const strongIntent = [
     "how do i play",
     "how to play",
     "how do i start",
-    "how to start",
     "where do i start",
-    "where do i begin",
-    "how do i begin",
-    "im new",
-    "i am new",
-    "new to the game",
-    "how do i get started",
-    "getting started",
-  ];
-  return triggers.some((p) => t.includes(p));
-}
-
-// Detect very short greetings / small talk so we don’t answer “not in docs”
-function isSmallTalk(q) {
-  const t = normalize(q);
-  if (!t) return true;
-
-  // ✅ IMPORTANT: if it looks like a real gameplay question, it's NOT small talk.
-  // This prevents "how do i play" being treated like "hey".
-  const gameplayIntentWords = [
-    "play",
-    "start",
-    "begin",
-    "progress",
-    "level",
+    "how do i progress",
+    "how to progress",
+    "what should i do",
+    "what should i do next",
+    "what should i focus on",
+    "how do i get",
+    "how do i craft",
+    "how do i fish",
+    "how do i hatch",
+    "how do i trade",
+    "how do i level",
     "build",
-    "farm",
-    "get",
-    "earn",
-    "craft",
-    "fish",
-    "dungeon",
-    "trade",
-    "market",
-    "egg",
-    "giggling",
-    "drops",
-    "boss",
-    "gear",
-    "xp",
-    "where",
-    "how",
-    "what",
+    "guide",
+    "tips",
   ];
-  const looksGameplay = gameplayIntentWords.some((w) => t.includes(w));
-  if (looksGameplay && t.length >= 6) return false;
+  if (containsAny(t, strongIntent)) return "not_small_talk";
 
-  const small = new Set([
+  // Contains game keywords = likely not small talk
+  const gameHints = [
+    "gigaverse",
+    "dungeon",
+    "dungetron",
+    "craft",
+    "crafting",
+    "fishing",
+    "egg",
+    "eggs",
+    "giggling",
+    "gigglings",
+    "trade",
+    "trading",
+    "market",
+    "gigamarket",
+    "boss",
+    "drop",
+    "drops",
+    "gear",
+    "build",
+    "charm",
+    "potion",
+    "potions",
+    "event",
+    "xp",
+    "level",
+  ];
+  if (containsAny(t, gameHints)) return "not_small_talk";
+
+  // greetings
+  const greetings = new Set([
     "hi",
     "hii",
     "hiii",
     "hello",
     "heyy",
+    "heyyy",
     "hey",
     "yo",
     "sup",
@@ -113,41 +136,31 @@ function isSmallTalk(q) {
     "good morning",
     "good afternoon",
     "good evening",
-    "how are you",
-    "who are you",
-    "what can you do",
-    "help",
-    "thanks",
-    "thank you",
   ]);
+  if (greetings.has(t)) return "greeting";
 
-  if (small.has(t)) return true;
+  // identity / capability questions (still small talk)
+  if (t === "who are you" || t === "what can you do" || t === "what do you do") return "about_ai";
 
-  // short + no game keywords = likely small talk
-  const gameHints = [
-    "gigaverse",
-    "dungeon",
-    "craft",
-    "fishing",
-    "egg",
-    "giggling",
-    "trade",
-    "market",
-    "boss",
-    "drop",
-    "gear",
-    "xp",
-    "build",
-  ];
-  const hasGameHint = gameHints.some((k) => t.includes(k));
-  if (t.length <= 18 && !hasGameHint) return true;
+  // mood
+  if (t === "how are you" || t === "how you doing" || t === "how are u") return "mood";
 
-  return false;
+  // thanks / acknowledgement
+  const thanks = new Set(["thanks", "thank you", "ty", "thx", "appreciate it"]);
+  if (thanks.has(t)) return "thanks";
+
+  const ack = new Set(["ok", "okay", "k", "kk", "nice", "cool", "great", "alright", "bet"]);
+  if (ack.has(t)) return "ack";
+
+  // short + no hints => likely small talk
+  if (t.length <= 18) return "greeting";
+
+  return "not_small_talk";
 }
 
 // Detect "what should I do next" style requests
-function isWhatNext(q) {
-  const t = normalize(q);
+function isWhatNext(qRaw) {
+  const t = normalize(qRaw);
   const triggers = [
     "what should i do next",
     "what should i do",
@@ -159,57 +172,98 @@ function isWhatNext(q) {
     "how do i get better",
     "im new what should i do",
     "i am new what should i do",
+    "i m new what should i do",
     "where do i start",
-    "what should i work on",
-    "what should i prioritize",
+    "how do i play",
+    "how to play",
+    "how do i start",
   ];
   return triggers.some((p) => t.includes(p));
 }
 
-// Light extraction of player's level + focus from text
-function extractPlayerSignals(q) {
-  const t = normalize(q);
+// Try to extract quick signals from user message (best-effort)
+function extractSignals(qRaw) {
+  const t = normalize(qRaw);
 
+  // level
   let level = null;
-  const m1 = t.match(/\blevel\s+(\d{1,3})\b/);
-  const m2 = t.match(/\blvl\s+(\d{1,3})\b/);
-  const m3 = t.match(/\bi\s*m\s*(\d{1,3})\b/);
-  if (m1) level = parseInt(m1[1], 10);
-  else if (m2) level = parseInt(m2[1], 10);
-  else if (m3) level = parseInt(m3[1], 10);
+  const m1 = t.match(/\blevel\s*(\d{1,3})\b/);
+  if (m1) level = Number(m1[1]);
+  const m2 = t.match(/\blvl\s*(\d{1,3})\b/);
+  if (!level && m2) level = Number(m2[1]);
 
+  // focus area
   let focus = null;
-  if (t.includes("dungeon")) focus = "dungeons";
-  else if (t.includes("fish")) focus = "fishing";
-  else if (t.includes("craft")) focus = "crafting";
-  else if (t.includes("egg") || t.includes("giggling")) focus = "eggs";
-  else if (t.includes("trade") || t.includes("market")) focus = "trading";
+  const focusMap = [
+    { key: "dungeons", hits: ["dungeon", "dungeons", "dungetron"] },
+    { key: "fishing", hits: ["fish", "fishing"] },
+    { key: "crafting", hits: ["craft", "crafting", "workbench", "alchemy"] },
+    { key: "eggs", hits: ["egg", "eggs", "giggling", "gigglings", "hatch", "hatching"] },
+    { key: "trading", hits: ["trade", "trading", "market", "gigamarket"] },
+  ];
+  for (const f of focusMap) {
+    if (containsAny(t, f.hits)) {
+      focus = f.key;
+      break;
+    }
+  }
 
+  // event vs dungeon focus
   let mode = null;
   if (t.includes("event")) mode = "event";
-  if (t.includes("dungeon")) {
-    const lastEvent = t.lastIndexOf("event");
-    const lastDungeon = t.lastIndexOf("dungeon");
-    if (lastDungeon > lastEvent) mode = "dungeon";
-    else if (lastEvent > lastDungeon) mode = "event";
-  }
+  if (t.includes("dungeon") || t.includes("dungetron")) mode = mode || "dungeon";
 
   return { level, focus, mode };
 }
 
+function makeSmallTalkResponse(kind) {
+  if (kind === "about_ai") {
+    return {
+      answer:
+        `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\n` +
+        `Ask me anything about **dungeons, fishing, crafting, gigglings/eggs, trading, drops, builds**, or **progression** and I’ll guide you (and cite sources when the docs cover it).`,
+      followups: ["What are you focusing on today — dungeons, fishing, crafting, eggs, or trading?"],
+    };
+  }
+
+  if (kind === "mood") {
+    return {
+      answer: `Doing great 😄 Ready when you are.\n\nWhat are you working on in Gigaverse right now?`,
+      followups: ["Dungeons, fishing, crafting, eggs/gigglings, or trading?"],
+    };
+  }
+
+  if (kind === "thanks") {
+    return {
+      answer: `Anytime 🤝\n\nWhat do you want to do next in Gigaverse?`,
+      followups: ["Want a quick progression plan?"],
+    };
+  }
+
+  if (kind === "ack") {
+    return {
+      answer: `👍 Got it.\n\nWant to keep going — what should we tackle next?`,
+      followups: ["Ask me about a system: dungeons / fishing / crafting / eggs / trading."],
+    };
+  }
+
+  // default greeting
+  return {
+    answer: `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`,
+    followups: [
+      "What part of the game are you on right now?",
+      "Do you want tips for dungeons, fishing, crafting, eggs/gigglings, or trading?",
+    ],
+  };
+}
+
+// -------------------- Handler --------------------
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
 
     // ---- Rate Limiting (6 per minute per IP) ----
-    const ip =
-      (req.headers["x-forwarded-for"] || "")
-        .toString()
-        .split(",")[0]
-        .trim() ||
-      (req.socket?.remoteAddress || "").toString() ||
-      "unknown";
-
+    const ip = getIp(req);
     const rl = rateLimit(ip, 6, 60_000);
     if (!rl.allowed) {
       res.setHeader("Retry-After", String(rl.retryAfterSec));
@@ -235,57 +289,46 @@ export default async function handler(req, res) {
     const q = normalize(qRaw);
     const qWords = q.split(" ").filter((w) => w.length >= 3);
 
-    const onboarding = isOnboarding(qRaw);
-    const wn = isWhatNext(qRaw);
-
-    // -------------------- Small talk (pre-model) --------------------
-    if (!onboarding && !wn && isSmallTalk(qRaw)) {
-      const isWho = /(who are you|what can you do)/.test(q);
-      const isHow = /(how are you)/.test(q);
-
-      const answer = isWho
-        ? `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nAsk me anything about **dungeons, fishing, crafting, gigglings/eggs, trading, drops, builds**, or **progression** and I’ll guide you (with sources when the docs cover it).`
-        : isHow
-        ? `Doing great 😄 Ready to help you in Gigaverse.\n\nWhat are you working on right now — **dungeons, fishing, crafting, eggs/gigglings, or trading**?`
-        : `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`;
-
+    // ---- Chit-chat (warm answers, no “not in docs”) ----
+    const chit = classifyChitChat(qRaw);
+    if (chit !== "not_small_talk") {
+      const { answer, followups } = makeSmallTalkResponse(chit);
       return res.status(200).json({
         mode: "helper",
         answer,
-        followups: [
-          "Are you more into dungeons, fishing, crafting, eggs/gigglings, or trading?",
-          "What level are you right now?",
-        ],
+        followups: (followups || []).slice(0, 2),
         citations: [],
       });
     }
 
-    // -------------------- “What Next?” (pre-model guardrail) --------------------
-    if (wn) {
-      const sig = extractPlayerSignals(qRaw);
-      const needLevel = !sig.level;
-      const needFocus = !sig.focus;
-      const needMode = !sig.mode;
+    // ---- "What Next" mode: if user asks for progression guidance and didn't give basics, ask directly (no Groq call) ----
+    const whatNext = isWhatNext(qRaw);
+    if (whatNext) {
+      const sig = extractSignals(qRaw);
 
-      if (needLevel || needFocus || needMode) {
-        const questions = [];
-        if (needLevel) questions.push("What level are you?");
-        if (needFocus) questions.push("What are you focusing on: Dungeons / Fishing / Crafting / Eggs (Gigglings) / Trading?");
-        if (needMode) questions.push("Are you event-focused or dungeon-focused?");
+      // If they didn't provide enough, ask the 3 sticky questions (and stop).
+      // This prevents weird generic answers + makes it feel like a real coach.
+      if (!sig.level || !sig.focus || !sig.mode) {
+        const missingQs = [];
+        if (!sig.level) missingQs.push("What **level** are you?");
+        if (!sig.focus) missingQs.push("What are you focusing on: **Fishing / Crafting / Eggs (Gigglings) / Dungeons / Trading**?");
+        if (!sig.mode) missingQs.push("Are you **event-focused** or **dungeon-focused** right now?");
 
         return res.status(200).json({
           mode: "helper",
           answer:
-            `I’ve got you 👊\n\nTo give you a clean “what next” plan, tell me:\n` +
-            questions.map((x, i) => `${i + 1}) ${x}`).join("\n"),
-          followups: questions.slice(0, 3),
+            `I’ve got you 🤝\n\n` +
+            `To give you a clean “what next” plan, quick checks:\n` +
+            missingQs.map((x, i) => `${i + 1}) ${x}`).join("\n"),
+          followups: [],
           citations: [],
         });
       }
+      // If they DID provide enough, let Groq build a plan using docs context (best).
     }
 
-    // -------------------- Retrieval + Rerank --------------------
-    const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best"];
+    // ---- Retrieval / rerank ----
+    const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best", "buy", "sell"];
 
     function scoreChunk(chunk) {
       const title = normalize(chunk?.title || "");
@@ -296,22 +339,26 @@ export default async function handler(req, res) {
 
       let score = 0;
 
+      // strongest: full-question substring match
       if (q && text.includes(q)) score += 30;
       if (q && title.includes(q)) score += 24;
       if (q && section.includes(q)) score += 16;
 
+      // word-level scoring (title/section weighted)
       for (const w of qWords) {
         if (title.includes(w)) score += 6;
         if (section.includes(w)) score += 4;
         if (text.includes(w)) score += 1;
       }
 
+      // intent boost
       for (const iw of intentWords) {
         if (!q.includes(iw)) continue;
         if (title.includes(iw) || section.includes(iw)) score += 4;
         else if (text.includes(iw)) score += 1;
       }
 
+      // tiny chunks often junk
       const len = (chunk?.text || "").length;
       if (len > 0 && len < 140) score -= 4;
 
@@ -380,33 +427,29 @@ export default async function handler(req, res) {
       })
       .join("\n\n---\n\n");
 
-    // -------------------- Model Prompt --------------------
+    // ---- Prompts ----
     const SYSTEM = `
-You are Gigaverse AI, the official AI assistant for the Gigaverse community.
+You are Gigaverse AI, the official assistant for the Gigaverse community.
 
 Tone:
 - Warm, confident, and human (like a helpful pro player).
-- Short and clear. No robotic refusal loops.
+- Short and clear.
 - No sarcasm, no roleplay.
 
-Docs-first:
-1) If SOURCES contain the answer, use them and cite them.
-2) If SOURCES do not contain the answer, say: “I don’t see this explicitly in the docs I have loaded.” then give best-practice guidance.
+Docs-first rules:
+1) If SOURCES contain the answer, answer from SOURCES and cite them (up to 3).
+2) If SOURCES do not contain the answer, still help with practical guidance, but say: “I don’t see this explicitly in the docs I have loaded.”
 3) Never invent Gigaverse-specific mechanics not supported by SOURCES.
 
 Communication rules:
-- Always start with a quick helpful summary line.
-- Then give 3–7 bullets with steps/tips.
-- If the question is vague, ask 1–2 targeted questions max (not generic “clarify”).
+- Start with a quick helpful summary (1–2 lines).
+- Then give steps/tips (bullets are fine).
+- If the question is vague, ask 1–2 targeted questions max (no generic “clarify”).
 
-Onboarding ("how do I play/start"):
-- Give a beginner starter plan (very practical).
-- Ask 1–2 small questions to personalize: level + preferred focus (dungeons/fishing/crafting/eggs/trading).
-
-"What Should I Do Next?" mode:
-- If user asks what to focus on / progress / what next:
-  Ask up to 3 short questions: (1) level, (2) focus area, (3) event vs dungeon.
-  If user already provided these, do NOT ask again—give a 3-step plan.
+"What Next" / Progression coaching:
+- If the user asks what to do next / how to play / how to progress:
+  - If you already have level + focus area + event/dungeon focus, give a 5–7 step plan.
+  - Otherwise ask ONLY the missing pieces (max 3 short questions).
 
 Output JSON only:
 {
@@ -417,10 +460,8 @@ Output JSON only:
 }
 `.trim();
 
-    const extraHint = onboarding
-      ? `\nNOTE: This is an onboarding / "how do I play" request. Use the onboarding behavior.\n`
-      : wn
-      ? `\nNOTE: This is a "what next" / progression request. Use the "What Should I Do Next?" behavior.\n`
+    const whatNextHint = whatNext
+      ? `\nNOTE: This is a progression ("what next") request. Coach them with a clear plan.\n`
       : "";
 
     const userPrompt = `
@@ -429,15 +470,16 @@ ${context || "(no sources matched)"}
 
 USER QUESTION:
 ${qRaw}
-${extraHint}
+${whatNextHint}
 
 Rules:
 - If SOURCES contain the answer, mode="docs" and include up to 3 citations (title + section).
-- If SOURCES do NOT contain the answer, mode="helper", citations must be [].
-- Followups: include 0–2 questions only, unless it's "what next" (then up to 3).
+- If SOURCES do NOT contain the answer, mode="helper" and citations must be [].
+- Followups: 0–2 normally. If this is a "what next" request, you may ask up to 3 short questions only if needed.
 Return JSON only.
 `.trim();
 
+    // ---- Groq call ----
     const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -480,7 +522,7 @@ Return JSON only.
         : "I’ve got you — what are you trying to do in Gigaverse right now?";
 
     const followups = Array.isArray(parsed?.followups)
-      ? parsed.followups.slice(0, 3).map((x) => String(x)).filter(Boolean)
+      ? parsed.followups.slice(0, whatNext ? 3 : 2).map((x) => String(x)).filter(Boolean)
       : [];
 
     let citations = Array.isArray(parsed?.citations) ? parsed.citations : [];
