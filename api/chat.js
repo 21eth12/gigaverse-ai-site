@@ -1,23 +1,11 @@
-// /api/chat.js — Gigaverse AI (Groq)
-// Docs-first + Conversational + What-Next + Session Memory + Docs-gap capture
-// Expects POST { question: string, sessionId?: string, chunks?: [{title, section, text, url?}] }
+// /api/chat.js — Gigaverse AI (Groq) — Docs-first + Conversational + "What Next" mode
+// Expects POST { question: string, chunks?: [{title, section, text, url?}], sessionId?: string }
 // Returns JSON: { mode, answer, followups, citations }
 
-const rateLimitMap = new Map(); // ip -> [timestamps]
+// -------------------- In-Memory Rate Limiter --------------------
+// 6 requests per rolling 60 seconds per IP.
+const rateLimitMap = new Map();
 
-// -------------------- Session Memory (in-memory, per server instance) --------------------
-// sessionId -> { profile: {level?, focus?, track?}, lastSeen, history: [{role, content}] }
-const sessionStore = new Map();
-const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
-const MAX_HISTORY = 8;
-
-// -------------------- Docs-gap capture (in-memory) --------------------
-// Stores questions where we answered "helper" (non-smalltalk) so you can update docs later
-const docsGapLog = [];
-const DOCS_GAP_MAX = 300;
-
-// -------------------- Rate limiter --------------------
-// 6 requests per rolling 60 seconds per IP
 function rateLimit(ip, limit = 6, windowMs = 60_000) {
   const now = Date.now();
 
@@ -37,7 +25,6 @@ function rateLimit(ip, limit = 6, windowMs = 60_000) {
   return { allowed: true, retryAfterSec: 0 };
 }
 
-// Cleanup helpers to avoid unbounded growth (best-effort)
 function cleanupRateLimitMap(maxIps = 5000) {
   if (rateLimitMap.size <= maxIps) return;
   const entries = Array.from(rateLimitMap.entries());
@@ -46,13 +33,122 @@ function cleanupRateLimitMap(maxIps = 5000) {
   for (let i = 0; i < toDelete; i++) rateLimitMap.delete(entries[i][0]);
 }
 
-function cleanupSessions() {
+// -------------------- In-Memory Session "Memory" + Session Cap --------------------
+// ⚠️ This is best-effort memory per Vercel instance (can reset if instance changes).
+const sessionStore = new Map();
+
+// Tune these:
+const MAX_SESSIONS = 2000; // ✅ session cap you requested
+const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // optional: expire sessions after 12h
+
+function parseCookies(cookieHeader) {
+  const out = {};
+  const raw = typeof cookieHeader === "string" ? cookieHeader : "";
+  raw.split(";").forEach((part) => {
+    const p = part.trim();
+    if (!p) return;
+    const eq = p.indexOf("=");
+    if (eq === -1) return;
+    const k = decodeURIComponent(p.slice(0, eq).trim());
+    const v = decodeURIComponent(p.slice(eq + 1).trim());
+    out[k] = v;
+  });
+  return out;
+}
+
+function makeId() {
+  // No imports: safe in serverless + works everywhere
+  return (
+    "sid_" +
+    Date.now().toString(36) +
+    "_" +
+    Math.random().toString(36).slice(2, 10) +
+    Math.random().toString(36).slice(2, 10)
+  );
+}
+
+function getSessionId(req, body, ip) {
+  // Priority:
+  // 1) body.sessionId (if your frontend sends it)
+  // 2) cookie giga_sid
+  // 3) fallback: create one and set cookie in response
+  const fromBody = typeof body?.sessionId === "string" ? body.sessionId.trim() : "";
+  if (fromBody) return { sid: fromBody, shouldSetCookie: false };
+
+  const cookies = parseCookies(req.headers.cookie);
+  const fromCookie = typeof cookies.giga_sid === "string" ? cookies.giga_sid.trim() : "";
+  if (fromCookie) return { sid: fromCookie, shouldSetCookie: false };
+
+  // fallback: create new
+  const ua = (req.headers["user-agent"] || "").toString().slice(0, 80);
+  const sid = makeId() + "_" + (ip || "ip") + "_" + ua.replace(/\s+/g, "_").slice(0, 30);
+  return { sid, shouldSetCookie: true };
+}
+
+function setSessionCookie(res, sid) {
+  // Lax cookie so it works in normal in-site requests
+  // If your site is https, this will still work; "Secure" is recommended in production.
+  const cookie = `giga_sid=${encodeURIComponent(sid)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+  res.setHeader("Set-Cookie", cookie);
+}
+
+function getSession(sid) {
   const now = Date.now();
-  for (const [sid, s] of sessionStore.entries()) {
-    if (!s?.lastSeen || now - s.lastSeen > SESSION_TTL_MS) sessionStore.delete(sid);
+
+  // TTL cleanup for this session id
+  const existing = sessionStore.get(sid);
+  if (existing && now - (existing.updatedAt || 0) > SESSION_TTL_MS) {
+    sessionStore.delete(sid);
+  }
+
+  const s = sessionStore.get(sid);
+  if (s) {
+    s.updatedAt = now;
+    return s.data;
+  }
+
+  const data = {
+    // store whatever you want here
+    profile: {
+      level: "",
+      focus: "", // Fishing / Crafting / Eggs / Dungeons / Trading
+      track: "", // event-focused / dungeon-focused
+    },
+    lastTopic: "",
+  };
+
+  sessionStore.set(sid, { data, updatedAt: now });
+  enforceSessionCap(MAX_SESSIONS);
+  return data;
+}
+
+function enforceSessionCap(maxSessions = 2000) {
+  if (sessionStore.size <= maxSessions) return;
+
+  // Evict least-recently-updated sessions
+  const entries = Array.from(sessionStore.entries());
+  entries.sort((a, b) => (a[1]?.updatedAt ?? 0) - (b[1]?.updatedAt ?? 0));
+
+  const toDelete = sessionStore.size - maxSessions;
+  for (let i = 0; i < toDelete; i++) {
+    sessionStore.delete(entries[i][0]);
   }
 }
 
+// Optional periodic-ish cleanup (best effort)
+function cleanupSessions(maxSessions = 2000) {
+  const now = Date.now();
+
+  // TTL purge first
+  for (const [sid, obj] of sessionStore.entries()) {
+    if (now - (obj?.updatedAt ?? 0) > SESSION_TTL_MS) sessionStore.delete(sid);
+  }
+
+  // Then enforce cap
+  enforceSessionCap(maxSessions);
+}
+
+// -------------------- Text Utilities --------------------
 function normalize(s) {
   return (typeof s === "string" ? s : "")
     .toLowerCase()
@@ -66,16 +162,12 @@ function clampText(t, max) {
   return s.length > max ? s.slice(0, max) : s;
 }
 
-// -------------------- Intent detection --------------------
+// Detect very short greetings / small talk
 function isSmallTalk(q) {
   const t = normalize(q);
   if (!t) return true;
 
-  // IMPORTANT: do NOT treat "how do i play" as small talk
-  const strongGameIntents = ["play", "start", "progress", "level", "build", "farm", "grind", "best", "how do i"];
-  if (strongGameIntents.some((k) => t.includes(k))) return false;
-
-  const smallExact = new Set([
+  const small = new Set([
     "hi",
     "hii",
     "hiii",
@@ -94,43 +186,18 @@ function isSmallTalk(q) {
     "help",
     "thanks",
     "thank you",
-    "ok",
-    "okay",
   ]);
 
-  if (smallExact.has(t)) return true;
+  if (small.has(t)) return true;
 
-  // short + no game hints = likely small talk
-  const gameHints = [
-    "gigaverse",
-    "dungeon",
-    "dungetron",
-    "craft",
-    "crafting",
-    "fishing",
-    "egg",
-    "eggs",
-    "giggling",
-    "gigglings",
-    "trade",
-    "trading",
-    "market",
-    "gigamarket",
-    "boss",
-    "drop",
-    "gear",
-    "potion",
-    "pots",
-    "chest",
-    "echo",
-  ];
-
+  const gameHints = ["gigaverse", "dungeon", "craft", "fishing", "egg", "gigglings", "trade", "market", "boss", "drop", "gear"];
   const hasGameHint = gameHints.some((k) => t.includes(k));
   if (t.length <= 18 && !hasGameHint) return true;
 
   return false;
 }
 
+// Detect "what should I do next" style requests
 function isWhatNext(q) {
   const t = normalize(q);
   const triggers = [
@@ -145,173 +212,44 @@ function isWhatNext(q) {
     "im new what should i do",
     "i am new what should i do",
     "where do i start",
-    "how do i play",
-    "how to play",
-    "i m new",
-    "im new",
-    "new to the game",
+    "what now",
+    "what next",
   ];
   return triggers.some((p) => t.includes(p));
 }
 
-// -------------------- Extract profile info from user text --------------------
-function extractProfileFromText(qRaw) {
-  const t = normalize(qRaw);
+// Very lightweight extraction for memory (no hard dependency)
+function tryExtractProfileAnswer(raw) {
+  const t = normalize(raw);
 
-  // level: "level 20", "lvl 20", "lv 20"
-  let level = null;
-  const m = t.match(/\b(?:level|lvl|lv)\s*(\d{1,3})\b/);
-  if (m) {
-    const n = parseInt(m[1], 10);
-    if (!Number.isNaN(n) && n >= 1 && n <= 999) level = n;
+  // Level: "level 12", "lvl 12", "im 12", etc.
+  let level = "";
+  const m = t.match(/\b(level|lvl)\s*(\d{1,3})\b/);
+  if (m && m[2]) level = m[2];
+
+  // Focus area keywords
+  let focus = "";
+  if (t.includes("fish")) focus = "Fishing";
+  else if (t.includes("craft")) focus = "Crafting";
+  else if (t.includes("egg") || t.includes("giggling")) focus = "Eggs/Gigglings";
+  else if (t.includes("dungeon") || t.includes("boss")) focus = "Dungeons";
+  else if (t.includes("trade") || t.includes("market")) focus = "Trading";
+
+  // Track
+  let track = "";
+  if (t.includes("event")) track = "Event-focused";
+  if (t.includes("dungeon")) {
+    // if they explicitly say "dungeon-focused"
+    if (t.includes("focused") || t.includes("focus")) track = "Dungeon-focused";
   }
-
-  // focus area
-  let focus = null;
-  const focusMap = [
-    ["dungeons", ["dungeon", "dungeons", "dungetron"]],
-    ["fishing", ["fish", "fishing"]],
-    ["crafting", ["craft", "crafting", "alchemy", "potions", "potion"]],
-    ["eggs", ["egg", "eggs", "giggling", "gigglings", "hatching"]],
-    ["trading", ["trade", "trading", "market", "gigamarket"]],
-  ];
-  for (const [label, keys] of focusMap) {
-    if (keys.some((k) => t.includes(k))) {
-      focus = label;
-      break;
-    }
-  }
-
-  // track: event-focused vs dungeon-focused
-  let track = null;
-  if (t.includes("event")) track = "event";
-  if (t.includes("dungeon focused") || t.includes("dungeon-focused")) track = "dungeon";
-  if (t.includes("event focused") || t.includes("event-focused")) track = "event";
-  // if they say "focused on dungeons" we’ll treat it as focus, not track
 
   return { level, focus, track };
 }
 
-function getOrInitSession(sessionId) {
-  const sid = (typeof sessionId === "string" && sessionId.trim()) ? sessionId.trim() : null;
-  if (!sid) return null;
-
-  const now = Date.now();
-  const existing = sessionStore.get(sid);
-  if (existing) {
-    existing.lastSeen = now;
-    return existing;
-  }
-
-  const fresh = {
-    profile: { level: null, focus: null, track: null },
-    lastSeen: now,
-    history: [],
-  };
-  sessionStore.set(sid, fresh);
-  return fresh;
-}
-
-function pushHistory(session, role, content) {
-  if (!session) return;
-  session.history.push({ role, content: String(content || "") });
-  if (session.history.length > MAX_HISTORY) session.history = session.history.slice(-MAX_HISTORY);
-}
-
-// -------------------- Chunk scoring (server-side rerank) --------------------
-function scoreChunk(q, qWords, intentWords, chunk) {
-  const title = normalize(chunk?.title || "");
-  const section = normalize(chunk?.section || "");
-  const text = normalize(chunk?.text || "");
-
-  if (!text && !title && !section) return 0;
-
-  let score = 0;
-
-  // full question substring match
-  if (q && text.includes(q)) score += 30;
-  if (q && title.includes(q)) score += 24;
-  if (q && section.includes(q)) score += 16;
-
-  // word-level scoring (title/section weighted)
-  for (const w of qWords) {
-    if (title.includes(w)) score += 6;
-    if (section.includes(w)) score += 4;
-    if (text.includes(w)) score += 1;
-  }
-
-  // intent boost
-  for (const iw of intentWords) {
-    if (!q.includes(iw)) continue;
-    if (title.includes(iw) || section.includes(iw)) score += 4;
-    else if (text.includes(iw)) score += 1;
-  }
-
-  // length sanity
-  const len = (chunk?.text || "").length;
-  if (len > 0 && len < 140) score -= 4;
-
-  return score;
-}
-
-function rerankAndPick(q, allChunks, k = 6, CHUNKS_MAX = 12, CHUNK_TEXT_MAX = 2400) {
-  const qWords = q.split(" ").filter((w) => w.length >= 3);
-  const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best", "play", "start"];
-
-  const list = Array.isArray(allChunks) ? allChunks : [];
-  const limited = list.slice(0, CHUNKS_MAX);
-
-  const scored = limited
-    .map((c) => ({
-      title: String(c?.title || "Untitled"),
-      section: String(c?.section || ""),
-      url: String(c?.url || ""),
-      text: clampText(String(c?.text || ""), CHUNK_TEXT_MAX),
-      _score: scoreChunk(q, qWords, intentWords, c),
-    }))
-    .sort((a, b) => b._score - a._score);
-
-  return scored.filter((x) => x._score > 0).slice(0, k);
-}
-
-async function fetchDocsIndexFromSite(req) {
-  const proto = (req.headers["x-forwarded-proto"] || "https").toString();
-  const host = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
-  if (!host) return [];
-
-  const origin = `${proto}://${host}`;
-  const url = `${origin}/docs_index.json?cb=${Date.now()}`;
-
-  const r = await fetch(url, { headers: { "cache-control": "no-store" } });
-  if (!r.ok) return [];
-
-  const data = await r.json().catch(() => null);
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.chunks)) return data.chunks;
-  if (data && Array.isArray(data.docs)) return data.docs;
-  return [];
-}
-
-// -------------------- Docs-gap capture --------------------
-function addDocsGap(question, sessionId) {
-  const item = {
-    ts: Date.now(),
-    question: String(question || "").slice(0, 600),
-    sessionId: String(sessionId || "").slice(0, 80),
-  };
-  docsGapLog.unshift(item);
-  if (docsGapLog.length > DOCS_GAP_MAX) docsGapLog.length = DOCS_GAP_MAX;
-
-  // helpful in Vercel logs for later review
-  console.log("[DOCS_GAP]", item.question);
-}
-
-// -------------------- Handler --------------------
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
 
-    // ---- Rate limiting (6/min per IP) ----
     const ip =
       (req.headers["x-forwarded-for"] || "")
         .toString()
@@ -320,6 +258,7 @@ export default async function handler(req, res) {
       (req.socket?.remoteAddress || "").toString() ||
       "unknown";
 
+    // ---- Rate Limiting ----
     const rl = rateLimit(ip, 6, 60_000);
     if (!rl.allowed) {
       res.setHeader("Retry-After", String(rl.retryAfterSec));
@@ -328,50 +267,48 @@ export default async function handler(req, res) {
       });
     }
     cleanupRateLimitMap(5000);
-    cleanupSessions();
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "Missing GROQ_API_KEY in Vercel env vars" });
 
     const body = req.body || {};
     const question = typeof body.question === "string" ? body.question.trim() : "";
-    const sessionId = typeof body.sessionId === "string" ? body.sessionId.trim() : "";
-
     if (!question) return res.status(400).json({ error: "Missing 'question' string" });
 
-    // caps
+    // ---- Session Memory (with cap) ----
+    const { sid, shouldSetCookie } = getSessionId(req, body, ip);
+    if (shouldSetCookie) setSessionCookie(res, sid);
+
+    // Best-effort cleanup
+    cleanupSessions(MAX_SESSIONS);
+
+    const session = getSession(sid);
+
+    // Caps
     const QUESTION_MAX = 900;
     const CHUNKS_MAX = 12;
     const CHUNK_TEXT_MAX = 2400;
 
     const qRaw = question.slice(0, QUESTION_MAX);
     const q = normalize(qRaw);
+    const qWords = q.split(" ").filter((w) => w.length >= 3);
 
-    // session
-    const session = getOrInitSession(sessionId);
+    // Update memory from user reply (harmless even if not used)
+    const extracted = tryExtractProfileAnswer(qRaw);
+    if (extracted.level && !session.profile.level) session.profile.level = extracted.level;
+    if (extracted.focus && !session.profile.focus) session.profile.focus = extracted.focus;
+    if (extracted.track && !session.profile.track) session.profile.track = extracted.track;
 
-    // update memory from user message (level/focus/track)
-    const extracted = extractProfileFromText(qRaw);
-    if (session) {
-      if (extracted.level) session.profile.level = extracted.level;
-      if (extracted.focus) session.profile.focus = extracted.focus;
-      if (extracted.track) session.profile.track = extracted.track;
-      session.lastSeen = Date.now();
-      pushHistory(session, "user", qRaw);
-    }
-
-    // ---- Small talk (warm, not “not in docs”) ----
+    // Small talk response
     if (isSmallTalk(qRaw)) {
-      const whoOrWhat = /who are you|what can you do/.test(q);
-      const howAreYou = /how are you/.test(q);
+      const answer =
+        /who are you|what can you do/.test(q)
+          ? `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nAsk me anything about **dungeons, fishing, crafting, eggs/gigglings, trading, drops, builds**, or **progression** and I’ll guide you (with sources when the docs cover it).`
+          : /how are you/.test(q)
+          ? `Doing great 😄 Ready to help you in Gigaverse.\n\nWhat are you working on right now — **dungeons, fishing, crafting, eggs/gigglings, or trading**?`
+          : `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`;
 
-      const answer = whoOrWhat
-        ? `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nAsk me anything about **dungeons, fishing, crafting, eggs/gigglings, trading, drops, builds**, or **progression** and I’ll guide you (with sources when the docs cover it).`
-        : howAreYou
-        ? `Doing great 😄 Ready to help you in Gigaverse.\n\nWhat are you working on right now — **dungeons, fishing, crafting, eggs/gigglings, or trading**?`
-        : `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`;
-
-      const out = {
+      return res.status(200).json({
         mode: "helper",
         answer,
         followups: [
@@ -379,55 +316,104 @@ export default async function handler(req, res) {
           "Do you want tips for dungeons, fishing, crafting, eggs/gigglings, or trading?",
         ],
         citations: [],
-      };
-
-      if (session) pushHistory(session, "assistant", out.answer);
-      return res.status(200).json(out);
+      });
     }
 
-    // ---- “What Next” pre-check (ask only missing info) ----
-    const wantsWhatNext = isWhatNext(qRaw);
-    if (wantsWhatNext && session) {
-      const needLevel = !session.profile.level;
-      const needFocus = !session.profile.focus;
-      const needTrack = !session.profile.track;
-
+    // If this is a "What Next" request, use memory to reduce repeated questions
+    const whatNext = isWhatNext(qRaw);
+    if (whatNext) {
       const missing = [];
-      if (needLevel) missing.push("level");
-      if (needFocus) missing.push("focus");
-      if (needTrack) missing.push("track");
+      if (!session.profile.level) missing.push("What level are you?");
+      if (!session.profile.focus) missing.push("Which system are you focusing on right now (Fishing / Crafting / Eggs / Dungeons / Trading)?");
+      if (!session.profile.track) missing.push("Are you more event-focused or dungeon-focused right now?");
 
+      // If still missing info, ask for it (max 3)
       if (missing.length) {
-        const qs = [];
-        if (needLevel) qs.push("What level are you?");
-        if (needFocus) qs.push("What are you focusing on: Dungeons / Fishing / Crafting / Eggs (Gigglings) / Trading?");
-        if (needTrack) qs.push("Are you event-focused or dungeon-focused today?");
-
-        const out = {
+        return res.status(200).json({
           mode: "helper",
-          answer: `I’ve got you 👍\n\nTo give you a clean “what next” plan, tell me:\n${qs
-            .slice(0, 3)
-            .map((x, i) => `${i + 1}) ${x}`)
-            .join("\n")}`,
-          followups: qs.slice(0, 3),
+          answer: `Got you 🤝 I can give you a clean “what next” plan — quick check:`,
+          followups: missing.slice(0, 3),
           citations: [],
-        };
-
-        if (session) pushHistory(session, "assistant", out.answer);
-        return res.status(200).json(out);
+        });
       }
-      // If nothing missing, we continue into the main docs-first LLM call,
-      // and include profile in prompt so it builds a plan.
+      // otherwise let the model answer normally but with the profile attached below
     }
 
-    // ---- Retrieval (client chunks rerank; fallback to docs_index.json) ----
-    const clientChunks = Array.isArray(body.chunks) ? body.chunks : [];
-    let picked = rerankAndPick(q, clientChunks, 6, CHUNKS_MAX, CHUNK_TEXT_MAX);
+    const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best"];
 
+    function scoreChunk(chunk) {
+      const title = normalize(chunk?.title || "");
+      const section = normalize(chunk?.section || "");
+      const text = normalize(chunk?.text || "");
+      if (!text && !title && !section) return 0;
+
+      let score = 0;
+      if (q && text.includes(q)) score += 30;
+      if (q && title.includes(q)) score += 24;
+      if (q && section.includes(q)) score += 16;
+
+      for (const w of qWords) {
+        if (title.includes(w)) score += 6;
+        if (section.includes(w)) score += 4;
+        if (text.includes(w)) score += 1;
+      }
+
+      for (const iw of intentWords) {
+        if (!q.includes(iw)) continue;
+        if (title.includes(iw) || section.includes(iw)) score += 4;
+        else if (text.includes(iw)) score += 1;
+      }
+
+      const len = (chunk?.text || "").length;
+      if (len > 0 && len < 140) score -= 4;
+
+      return score;
+    }
+
+    function rerankAndPick(allChunks, k = 6) {
+      const list = Array.isArray(allChunks) ? allChunks : [];
+      const limited = list.slice(0, CHUNKS_MAX);
+
+      const scored = limited
+        .map((c) => ({
+          title: String(c?.title || "Untitled"),
+          section: String(c?.section || ""),
+          url: String(c?.url || ""),
+          text: clampText(String(c?.text || ""), CHUNK_TEXT_MAX),
+          _score: scoreChunk(c),
+        }))
+        .sort((a, b) => b._score - a._score);
+
+      return scored.filter((x) => x._score > 0).slice(0, k);
+    }
+
+    async function fetchDocsIndexFromSite() {
+      const proto = (req.headers["x-forwarded-proto"] || "https").toString();
+      const host = (req.headers["x-forwarded-host"] || req.headers.host || "").toString();
+      if (!host) return [];
+
+      const origin = `${proto}://${host}`;
+      const url = `${origin}/docs_index.json?cb=${Date.now()}`;
+
+      const r = await fetch(url, { headers: { "cache-control": "no-store" } });
+      if (!r.ok) return [];
+
+      const data = await r.json().catch(() => null);
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.chunks)) return data.chunks;
+      if (data && Array.isArray(data.docs)) return data.docs;
+      return [];
+    }
+
+    // Client chunks rerank
+    const clientChunks = Array.isArray(body.chunks) ? body.chunks : [];
+    let picked = rerankAndPick(clientChunks, 6);
+
+    // Fallback to docs_index.json
     if (picked.length === 0) {
-      const docsIndex = await fetchDocsIndexFromSite(req);
+      const docsIndex = await fetchDocsIndexFromSite();
       const capped = docsIndex.length > 7000 ? docsIndex.slice(0, 7000) : docsIndex;
-      picked = rerankAndPick(q, capped, 6, CHUNKS_MAX, CHUNK_TEXT_MAX);
+      picked = rerankAndPick(capped, 6);
     }
 
     const context = picked
@@ -448,49 +434,28 @@ export default async function handler(req, res) {
       })
       .join("\n\n---\n\n");
 
-    // ---- Memory block for the model (profile + short history) ----
-    const profileLine = session
-      ? `User profile (may be partial): level=${session.profile.level ?? "unknown"}, focus=${
-          session.profile.focus ?? "unknown"
-        }, track=${session.profile.track ?? "unknown"}`
-      : "User profile: unknown";
-
-    const historyBlock =
-      session && Array.isArray(session.history) && session.history.length
-        ? session.history
-            .slice(-6)
-            .map((m) => `${m.role === "user" ? "USER" : "ASSISTANT"}: ${String(m.content || "").slice(0, 250)}`)
-            .join("\n")
-        : "(no recent chat history)";
-
     const SYSTEM = `
 You are Gigaverse AI, the official AI assistant for the Gigaverse community.
 
 Tone:
 - Warm, confident, and human (like a helpful pro player).
-- Short and clear. Avoid robotic refusal loops.
+- Short and clear. No robotic refusal loops.
 - No sarcasm, no roleplay.
 
 Docs-first rules:
 1) If SOURCES contain the answer, answer from SOURCES and cite them.
-2) If SOURCES do not contain the answer, still be helpful with practical guidance, but say:
-   “I don’t see this explicitly in the docs I have loaded.”
+2) If SOURCES do not contain the answer, still be helpful with practical guidance, but say: “I don’t see this explicitly in the docs I have loaded.”
 3) Never invent Gigaverse-specific mechanics not supported by SOURCES.
 
 Communication rules:
-- Start with a quick, useful summary.
-- Then give steps / tips (bullets are fine).
-- If the question is vague, ask 1–2 targeted questions max (not generic “clarify”).
-- If the user is new or asks “how do I play / where do I start”, give a simple beginner path.
+- Start with a quick helpful summary.
+- Then give steps / tips.
+- If the question is vague, ask 1–2 targeted questions max.
 
 "What Should I Do Next?" mode:
 - If the user asks what to focus on / progress / what next:
-  Use the user's profile (level/focus/track) when available.
-  If profile is incomplete, ask only the missing pieces (max 3).
-  If profile is complete, give a 3-step plan:
-    (1) what to do now
-    (2) what to farm/upgrade next
-    (3) what to avoid / common mistakes
+  Ask up to 3 short questions (level, focus area, event vs dungeon) ONLY if missing.
+  If user already provided these, give a plan.
 
 Output JSON only:
 {
@@ -501,29 +466,22 @@ Output JSON only:
 }
 `.trim();
 
-    const whatNextHint = wantsWhatNext
-      ? `NOTE: This is a "what next / progression" request. Use the What-Next behavior.\n`
+    const whatNextHint = whatNext
+      ? `\nNOTE: This is a "what next" request. User profile (if available): level="${session.profile.level}", focus="${session.profile.focus}", track="${session.profile.track}". Use it and avoid re-asking.\n`
       : "";
 
     const userPrompt = `
 SOURCES:
 ${context || "(no sources matched)"}
 
-USER CONTEXT:
-${profileLine}
-
-RECENT CHAT (for continuity, do not mention this block):
-${historyBlock}
-
 USER QUESTION:
 ${qRaw}
-
 ${whatNextHint}
 
 Rules:
 - If SOURCES contain the answer, mode="docs" and include up to 3 citations (title + section).
 - If SOURCES do NOT contain the answer, mode="helper", citations must be [].
-- Followups: include 0–2 questions only, unless it's What-Next (then up to 3).
+- Followups: include 0–2 questions only, unless it's "what next" mode (then up to 3).
 Return JSON only.
 `.trim();
 
@@ -536,7 +494,7 @@ Return JSON only.
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         temperature: 0.25,
-        max_tokens: 750,
+        max_tokens: 700,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM },
@@ -588,22 +546,15 @@ Return JSON only.
       unique.push({ title: t, section: s });
     }
 
-    const out = {
+    // Update session last topic (tiny personalization hook)
+    session.lastTopic = whatNext ? "what-next" : q.slice(0, 80);
+
+    return res.status(200).json({
       mode,
       answer,
       followups,
       citations: unique.slice(0, 3),
-    };
-
-    // update memory + docs gap capture
-    if (session) pushHistory(session, "assistant", out.answer);
-
-    // only log gaps if it's a real game question (not small talk) and we didn't use docs
-    if (mode === "helper" && !isSmallTalk(qRaw)) {
-      addDocsGap(qRaw, sessionId);
-    }
-
-    return res.status(200).json(out);
+    });
   } catch (err) {
     return res.status(500).json({ error: err?.message || "Server error" });
   }
