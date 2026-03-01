@@ -1,5 +1,5 @@
 // /api/chat.js — Gigaverse AI (Groq 70B)
-// Docs-first + Conversational + "What Next" mode + Session cap
+// Docs-first + Conversational + "What Next" mode + Session cap + Better guided followups
 // Expects POST { question: string, chunks?: [{title, section, text, url?}], sessionId?: string }
 // Returns JSON: { mode, answer, followups, citations }
 
@@ -157,6 +157,10 @@ function isSmallTalk(q) {
     "help",
     "thanks",
     "thank you",
+    "ok",
+    "okay",
+    "nice",
+    "cool",
   ]);
 
   if (small.has(t)) return true;
@@ -185,6 +189,8 @@ function isWhatNext(q) {
     "what now",
     "what next",
     "how do i play",
+    "guide me as a new player",
+    "guide me",
   ];
   return triggers.some((p) => t.includes(p));
 }
@@ -200,7 +206,7 @@ function tryExtractProfileAnswer(raw) {
   if (t.includes("fish")) focus = "Fishing";
   else if (t.includes("craft")) focus = "Crafting";
   else if (t.includes("egg") || t.includes("giggling")) focus = "Eggs/Gigglings";
-  else if (t.includes("dungeon") || t.includes("boss")) focus = "Dungeons";
+  else if (t.includes("dungeon") || t.includes("boss") || t.includes("combat")) focus = "Dungeons";
   else if (t.includes("trade") || t.includes("market")) focus = "Trading";
 
   let track = "";
@@ -217,7 +223,7 @@ function requiredTopicFromQuestion(qRaw) {
     { key: "fishing", must: ["fishing"] },
     { key: "crafting", must: ["craft", "crafting", "alchemy", "potion"] },
     { key: "eggs", must: ["egg", "eggs", "giggling", "gigglings", "hatch", "hatching"] },
-    { key: "dungeons", must: ["dungeon", "boss", "underhaul", "dungetron"] },
+    { key: "dungeons", must: ["dungeon", "boss", "underhaul", "dungetron", "combat"] },
     { key: "trading", must: ["trade", "market", "gigamarket", "order book"] },
   ];
 
@@ -225,6 +231,65 @@ function requiredTopicFromQuestion(qRaw) {
     if (topic.must.some((m) => t.includes(m))) return topic;
   }
   return null;
+}
+
+// Guided helper followups so replies feel sticky
+function buildGuidedFollowups(question, answer, mode = "helper") {
+  const t = normalize(`${question} ${answer}`);
+
+  if (t.includes("new player") || t.includes("start") || t.includes("how do i play") || t.includes("guide me")) {
+    return [
+      "Do you want to start with dungeons, fishing, crafting, eggs/gigglings, or trading?",
+      "Do you want a simple beginner path for your first hour in the game?"
+    ];
+  }
+
+  if (t.includes("fishing")) {
+    return [
+      "Do you want the basic fishing mechanic or the best fishing skills to level first?",
+      "Are you fishing for progression or for event results?"
+    ];
+  }
+
+  if (t.includes("craft") || t.includes("alchemy") || t.includes("potion")) {
+    return [
+      "Do you want help with potions, gear, or where the crafting stations are?",
+      "Do you want the easiest crafting path for a new player?"
+    ];
+  }
+
+  if (t.includes("egg") || t.includes("giggling") || t.includes("hatch")) {
+    return [
+      "Do you want to know how eggs work, how hatching works, or how to get materials?",
+      "Do you want a simple egg-hatching guide?"
+    ];
+  }
+
+  if (t.includes("trade") || t.includes("market") || t.includes("gigamarket")) {
+    return [
+      "Do you want to know what items you can trade or how the Gigamarket works?",
+      "Do you want help making money through trading?"
+    ];
+  }
+
+  if (t.includes("dungeon") || t.includes("combat") || t.includes("boss")) {
+    return [
+      "Do you want the basics of combat, gear progression, or dungeon rewards?",
+      "Do you want help getting stronger for dungeons?"
+    ];
+  }
+
+  if (mode === "docs") {
+    return [
+      "Do you want to go deeper into this topic or switch to another system like fishing, crafting, or trading?",
+      "Want a quick beginner tip for what to do next?"
+    ];
+  }
+
+  return [
+    "Do you want help with dungeons, fishing, crafting, eggs/gigglings, or trading?",
+    "Want a simple beginner recommendation for what to do next?"
+  ];
 }
 
 // -------------------- Main handler --------------------
@@ -240,7 +305,6 @@ export default async function handler(req, res) {
       (req.socket?.remoteAddress || "").toString() ||
       "unknown";
 
-    // Rate limit
     const rl = rateLimit(ip, 6, 60_000);
     if (!rl.allowed) {
       res.setHeader("Retry-After", String(rl.retryAfterSec));
@@ -257,13 +321,11 @@ export default async function handler(req, res) {
     const question = typeof body.question === "string" ? body.question.trim() : "";
     if (!question) return res.status(400).json({ error: "Missing 'question' string" });
 
-    // Session
     const { sid, shouldSetCookie } = getSessionId(req, body, ip);
     if (shouldSetCookie) setSessionCookie(res, sid);
     cleanupSessions(MAX_SESSIONS);
     const session = getSession(sid);
 
-    // Caps
     const QUESTION_MAX = 900;
     const CHUNKS_MAX = 12;
     const CHUNK_TEXT_MAX = 2400;
@@ -272,33 +334,32 @@ export default async function handler(req, res) {
     const q = normalize(qRaw);
     const qWords = q.split(" ").filter((w) => w.length >= 3);
 
-    // Memory extraction
     const extracted = tryExtractProfileAnswer(qRaw);
     if (extracted.level && !session.profile.level) session.profile.level = extracted.level;
     if (extracted.focus && !session.profile.focus) session.profile.focus = extracted.focus;
     if (extracted.track && !session.profile.track) session.profile.track = extracted.track;
 
-    // Small talk
     if (isSmallTalk(qRaw) && !isWhatNext(qRaw)) {
-      const answer =
-        /who are you|what can you do/.test(q)
-          ? `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nAsk me anything about **dungeons, fishing, crafting, eggs/gigglings, trading, drops, builds**, or **progression** and I’ll guide you.`
-          : /how are you/.test(q)
-          ? `Doing great 😄 Ready when you are.\n\nWhat are you working on right now — **dungeons, fishing, crafting, eggs/gigglings, or trading**?`
-          : `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`;
+      let answer;
+
+      if (/who are you|what can you do/.test(q)) {
+        answer = `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nI can help with **dungeons, fishing, crafting, eggs/gigglings, trading, drops, builds,** and **progression**.`;
+      } else if (/how are you/.test(q)) {
+        answer = `Doing great 😄 Ready to help you in Gigaverse.`;
+      } else if (/thanks|thank you|nice|cool/.test(q)) {
+        answer = `You’re good 👌`;
+      } else {
+        answer = `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`;
+      }
 
       return res.status(200).json({
         mode: "helper",
         answer,
-        followups: [
-          "What part of the game are you on right now?",
-          "Do you want tips for dungeons, fishing, crafting, eggs/gigglings, or trading?",
-        ],
+        followups: buildGuidedFollowups(qRaw, answer, "helper"),
         citations: [],
       });
     }
 
-    // What-next quick gate
     const whatNext = isWhatNext(qRaw);
     if (whatNext) {
       const missing = [];
@@ -382,7 +443,6 @@ export default async function handler(req, res) {
       return [];
     }
 
-    // 1) Pick from client chunks
     const clientChunks = Array.isArray(body.chunks) ? body.chunks : [];
     let picked = rerankAndPick(clientChunks, 6);
 
@@ -431,7 +491,7 @@ Tone:
 Rules:
 1) Use SOURCES as truth. If SOURCES contain the answer, answer using them and cite them.
 2) If SOURCES do not contain the answer, do NOT guess and do NOT deny the feature.
-   Say: “I don’t see this in the sources I’m looking at.” Then give safe, practical next steps + 1–2 targeted questions.
+   Say: “I don’t see this in the sources I’m looking at.” Then give safe, practical next steps.
 3) Never mention internal tooling, training rules, chunks, retrieval, or implementation.
 
 Behavior:
@@ -439,6 +499,16 @@ Behavior:
 - Then give short steps/tips when useful.
 - For beginner questions like “how do I play” or “where do I start”, give a simple starter path.
 - For “what should I do next” requests, use the user's known profile if available and avoid re-asking known info.
+
+VERY IMPORTANT FOLLOWUP RULE:
+- Do not end with bland generic lines like:
+  “Anything else?”, “Let me know if you need more help”, “What else would you like to know?”
+- Instead, guide the user deeper with specific options.
+- Followups should feel like smart next choices, for example:
+  - “Do you want to start with dungeons, fishing, crafting, eggs/gigglings, or trading?”
+  - “Do you want the basic mechanic, the best progression path, or money-making tips?”
+  - “Do you want the beginner version or the optimized version?”
+- Followups must be short, natural, and clickable-style.
 
 Output JSON only:
 {
@@ -464,7 +534,8 @@ ${whatNextHint}
 Rules:
 - If SOURCES contain the answer, mode="docs" and include up to 3 citations (title + section).
 - If SOURCES do NOT contain the answer, mode="helper" and citations must be [].
-- Followups: include 0–2 questions only (or up to 3 for "what next").
+- Followups should be option-based and guided, not generic.
+- Return 1–2 strong followups normally, or up to 3 for "what next".
 Return JSON only.
 `.trim();
 
@@ -507,11 +578,15 @@ Return JSON only.
     const answer =
       typeof parsed?.answer === "string" && parsed.answer.trim()
         ? parsed.answer.trim()
-        : "I’ve got you — what are you trying to do in Gigaverse right now?";
+        : "I’ve got you — tell me which part of Gigaverse you want help with.";
 
-    const followups = Array.isArray(parsed?.followups)
+    let followups = Array.isArray(parsed?.followups)
       ? parsed.followups.slice(0, 3).map((x) => String(x)).filter(Boolean)
       : [];
+
+    if (!followups.length) {
+      followups = buildGuidedFollowups(qRaw, answer, mode).slice(0, 3);
+    }
 
     let citations = Array.isArray(parsed?.citations) ? parsed.citations : [];
     if (mode === "helper") citations = [];
