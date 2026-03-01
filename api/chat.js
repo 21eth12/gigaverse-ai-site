@@ -1,14 +1,13 @@
-// /api/chat.js — Gigaverse AI (Groq) — Docs-first + Conversational + "What Next" mode
+// /api/chat.js — Gigaverse AI (Groq 70B)
+// Docs-first + Conversational + "What Next" mode + Session cap
 // Expects POST { question: string, chunks?: [{title, section, text, url?}], sessionId?: string }
 // Returns JSON: { mode, answer, followups, citations }
 
-// -------------------- In-Memory Rate Limiter --------------------
-// 6 requests per rolling 60 seconds per IP.
 const rateLimitMap = new Map();
 
+// -------------------- Rate Limit: 6 per rolling 60 seconds per IP --------------------
 function rateLimit(ip, limit = 6, windowMs = 60_000) {
   const now = Date.now();
-
   if (!rateLimitMap.has(ip)) rateLimitMap.set(ip, []);
   const timestamps = rateLimitMap.get(ip);
 
@@ -33,13 +32,10 @@ function cleanupRateLimitMap(maxIps = 5000) {
   for (let i = 0; i < toDelete; i++) rateLimitMap.delete(entries[i][0]);
 }
 
-// -------------------- In-Memory Session "Memory" + Session Cap --------------------
-// ⚠️ This is best-effort memory per Vercel instance (can reset if instance changes).
+// -------------------- Session memory + cap (best-effort in-memory) --------------------
 const sessionStore = new Map();
-
-// Tune these:
-const MAX_SESSIONS = 2000; // ✅ session cap you requested
-const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // optional: expire sessions after 12h
+const MAX_SESSIONS = 2000;
+const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12h
 
 function parseCookies(cookieHeader) {
   const out = {};
@@ -57,7 +53,6 @@ function parseCookies(cookieHeader) {
 }
 
 function makeId() {
-  // No imports: safe in serverless + works everywhere
   return (
     "sid_" +
     Date.now().toString(36) +
@@ -68,10 +63,6 @@ function makeId() {
 }
 
 function getSessionId(req, body, ip) {
-  // Priority:
-  // 1) body.sessionId (if your frontend sends it)
-  // 2) cookie giga_sid
-  // 3) fallback: create one and set cookie in response
   const fromBody = typeof body?.sessionId === "string" ? body.sessionId.trim() : "";
   if (fromBody) return { sid: fromBody, shouldSetCookie: false };
 
@@ -79,24 +70,36 @@ function getSessionId(req, body, ip) {
   const fromCookie = typeof cookies.giga_sid === "string" ? cookies.giga_sid.trim() : "";
   if (fromCookie) return { sid: fromCookie, shouldSetCookie: false };
 
-  // fallback: create new
   const ua = (req.headers["user-agent"] || "").toString().slice(0, 80);
   const sid = makeId() + "_" + (ip || "ip") + "_" + ua.replace(/\s+/g, "_").slice(0, 30);
   return { sid, shouldSetCookie: true };
 }
 
 function setSessionCookie(res, sid) {
-  // Lax cookie so it works in normal in-site requests
-  // If your site is https, this will still work; "Secure" is recommended in production.
   const cookie = `giga_sid=${encodeURIComponent(sid)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`;
   res.setHeader("Set-Cookie", cookie);
 }
 
+function enforceSessionCap(maxSessions = 2000) {
+  if (sessionStore.size <= maxSessions) return;
+  const entries = Array.from(sessionStore.entries());
+  entries.sort((a, b) => (a[1]?.updatedAt ?? 0) - (b[1]?.updatedAt ?? 0));
+  const toDelete = sessionStore.size - maxSessions;
+  for (let i = 0; i < toDelete; i++) sessionStore.delete(entries[i][0]);
+}
+
+function cleanupSessions(maxSessions = 2000) {
+  const now = Date.now();
+  for (const [sid, obj] of sessionStore.entries()) {
+    if (now - (obj?.updatedAt ?? 0) > SESSION_TTL_MS) sessionStore.delete(sid);
+  }
+  enforceSessionCap(maxSessions);
+}
+
 function getSession(sid) {
   const now = Date.now();
-
-  // TTL cleanup for this session id
   const existing = sessionStore.get(sid);
+
   if (existing && now - (existing.updatedAt || 0) > SESSION_TTL_MS) {
     sessionStore.delete(sid);
   }
@@ -108,12 +111,7 @@ function getSession(sid) {
   }
 
   const data = {
-    // store whatever you want here
-    profile: {
-      level: "",
-      focus: "", // Fishing / Crafting / Eggs / Dungeons / Trading
-      track: "", // event-focused / dungeon-focused
-    },
+    profile: { level: "", focus: "", track: "" },
     lastTopic: "",
   };
 
@@ -122,33 +120,7 @@ function getSession(sid) {
   return data;
 }
 
-function enforceSessionCap(maxSessions = 2000) {
-  if (sessionStore.size <= maxSessions) return;
-
-  // Evict least-recently-updated sessions
-  const entries = Array.from(sessionStore.entries());
-  entries.sort((a, b) => (a[1]?.updatedAt ?? 0) - (b[1]?.updatedAt ?? 0));
-
-  const toDelete = sessionStore.size - maxSessions;
-  for (let i = 0; i < toDelete; i++) {
-    sessionStore.delete(entries[i][0]);
-  }
-}
-
-// Optional periodic-ish cleanup (best effort)
-function cleanupSessions(maxSessions = 2000) {
-  const now = Date.now();
-
-  // TTL purge first
-  for (const [sid, obj] of sessionStore.entries()) {
-    if (now - (obj?.updatedAt ?? 0) > SESSION_TTL_MS) sessionStore.delete(sid);
-  }
-
-  // Then enforce cap
-  enforceSessionCap(maxSessions);
-}
-
-// -------------------- Text Utilities --------------------
+// -------------------- Text helpers --------------------
 function normalize(s) {
   return (typeof s === "string" ? s : "")
     .toLowerCase()
@@ -162,7 +134,6 @@ function clampText(t, max) {
   return s.length > max ? s.slice(0, max) : s;
 }
 
-// Detect very short greetings / small talk
 function isSmallTalk(q) {
   const t = normalize(q);
   if (!t) return true;
@@ -190,14 +161,13 @@ function isSmallTalk(q) {
 
   if (small.has(t)) return true;
 
-  const gameHints = ["gigaverse", "dungeon", "craft", "fishing", "egg", "gigglings", "trade", "market", "boss", "drop", "gear"];
+  const gameHints = ["gigaverse", "dungeon", "craft", "fishing", "egg", "giggling", "trade", "market", "boss", "drop", "gear"];
   const hasGameHint = gameHints.some((k) => t.includes(k));
   if (t.length <= 18 && !hasGameHint) return true;
 
   return false;
 }
 
-// Detect "what should I do next" style requests
 function isWhatNext(q) {
   const t = normalize(q);
   const triggers = [
@@ -214,20 +184,18 @@ function isWhatNext(q) {
     "where do i start",
     "what now",
     "what next",
+    "how do i play",
   ];
   return triggers.some((p) => t.includes(p));
 }
 
-// Very lightweight extraction for memory (no hard dependency)
 function tryExtractProfileAnswer(raw) {
   const t = normalize(raw);
 
-  // Level: "level 12", "lvl 12", "im 12", etc.
   let level = "";
   const m = t.match(/\b(level|lvl)\s*(\d{1,3})\b/);
   if (m && m[2]) level = m[2];
 
-  // Focus area keywords
   let focus = "";
   if (t.includes("fish")) focus = "Fishing";
   else if (t.includes("craft")) focus = "Crafting";
@@ -235,17 +203,31 @@ function tryExtractProfileAnswer(raw) {
   else if (t.includes("dungeon") || t.includes("boss")) focus = "Dungeons";
   else if (t.includes("trade") || t.includes("market")) focus = "Trading";
 
-  // Track
   let track = "";
   if (t.includes("event")) track = "Event-focused";
-  if (t.includes("dungeon")) {
-    // if they explicitly say "dungeon-focused"
-    if (t.includes("focused") || t.includes("focus")) track = "Dungeon-focused";
-  }
+  if (t.includes("dungeon") && (t.includes("focused") || t.includes("focus"))) track = "Dungeon-focused";
 
   return { level, focus, track };
 }
 
+function requiredTopicFromQuestion(qRaw) {
+  const t = normalize(qRaw);
+
+  const topics = [
+    { key: "fishing", must: ["fishing"] },
+    { key: "crafting", must: ["craft", "crafting", "alchemy", "potion"] },
+    { key: "eggs", must: ["egg", "eggs", "giggling", "gigglings", "hatch", "hatching"] },
+    { key: "dungeons", must: ["dungeon", "boss", "underhaul", "dungetron"] },
+    { key: "trading", must: ["trade", "market", "gigamarket", "order book"] },
+  ];
+
+  for (const topic of topics) {
+    if (topic.must.some((m) => t.includes(m))) return topic;
+  }
+  return null;
+}
+
+// -------------------- Main handler --------------------
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
@@ -258,7 +240,7 @@ export default async function handler(req, res) {
       (req.socket?.remoteAddress || "").toString() ||
       "unknown";
 
-    // ---- Rate Limiting ----
+    // Rate limit
     const rl = rateLimit(ip, 6, 60_000);
     if (!rl.allowed) {
       res.setHeader("Retry-After", String(rl.retryAfterSec));
@@ -275,13 +257,10 @@ export default async function handler(req, res) {
     const question = typeof body.question === "string" ? body.question.trim() : "";
     if (!question) return res.status(400).json({ error: "Missing 'question' string" });
 
-    // ---- Session Memory (with cap) ----
+    // Session
     const { sid, shouldSetCookie } = getSessionId(req, body, ip);
     if (shouldSetCookie) setSessionCookie(res, sid);
-
-    // Best-effort cleanup
     cleanupSessions(MAX_SESSIONS);
-
     const session = getSession(sid);
 
     // Caps
@@ -293,19 +272,19 @@ export default async function handler(req, res) {
     const q = normalize(qRaw);
     const qWords = q.split(" ").filter((w) => w.length >= 3);
 
-    // Update memory from user reply (harmless even if not used)
+    // Memory extraction
     const extracted = tryExtractProfileAnswer(qRaw);
     if (extracted.level && !session.profile.level) session.profile.level = extracted.level;
     if (extracted.focus && !session.profile.focus) session.profile.focus = extracted.focus;
     if (extracted.track && !session.profile.track) session.profile.track = extracted.track;
 
-    // Small talk response
-    if (isSmallTalk(qRaw)) {
+    // Small talk
+    if (isSmallTalk(qRaw) && !isWhatNext(qRaw)) {
       const answer =
         /who are you|what can you do/.test(q)
-          ? `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nAsk me anything about **dungeons, fishing, crafting, eggs/gigglings, trading, drops, builds**, or **progression** and I’ll guide you (with sources when the docs cover it).`
+          ? `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nAsk me anything about **dungeons, fishing, crafting, eggs/gigglings, trading, drops, builds**, or **progression** and I’ll guide you.`
           : /how are you/.test(q)
-          ? `Doing great 😄 Ready to help you in Gigaverse.\n\nWhat are you working on right now — **dungeons, fishing, crafting, eggs/gigglings, or trading**?`
+          ? `Doing great 😄 Ready when you are.\n\nWhat are you working on right now — **dungeons, fishing, crafting, eggs/gigglings, or trading**?`
           : `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`;
 
       return res.status(200).json({
@@ -319,15 +298,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // If this is a "What Next" request, use memory to reduce repeated questions
+    // What-next quick gate
     const whatNext = isWhatNext(qRaw);
     if (whatNext) {
       const missing = [];
       if (!session.profile.level) missing.push("What level are you?");
-      if (!session.profile.focus) missing.push("Which system are you focusing on right now (Fishing / Crafting / Eggs / Dungeons / Trading)?");
+      if (!session.profile.focus) missing.push("Which system are you focusing on (Fishing / Crafting / Eggs / Dungeons / Trading)?");
       if (!session.profile.track) missing.push("Are you more event-focused or dungeon-focused right now?");
-
-      // If still missing info, ask for it (max 3)
       if (missing.length) {
         return res.status(200).json({
           mode: "helper",
@@ -336,10 +313,9 @@ export default async function handler(req, res) {
           citations: [],
         });
       }
-      // otherwise let the model answer normally but with the profile attached below
     }
 
-    const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best"];
+    const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best", "play", "start"];
 
     function scoreChunk(chunk) {
       const title = normalize(chunk?.title || "");
@@ -348,6 +324,7 @@ export default async function handler(req, res) {
       if (!text && !title && !section) return 0;
 
       let score = 0;
+
       if (q && text.includes(q)) score += 30;
       if (q && title.includes(q)) score += 24;
       if (q && section.includes(q)) score += 16;
@@ -405,15 +382,24 @@ export default async function handler(req, res) {
       return [];
     }
 
-    // Client chunks rerank
+    // 1) Pick from client chunks
     const clientChunks = Array.isArray(body.chunks) ? body.chunks : [];
     let picked = rerankAndPick(clientChunks, 6);
 
-    // Fallback to docs_index.json
-    if (picked.length === 0) {
+    const topScore = picked?.[0]?._score ?? 0;
+    const MIN_TOP_SCORE = 10;
+
+    const topic = requiredTopicFromQuestion(qRaw);
+    const pickedTextBlob = picked.map((c) => normalize(`${c.title} ${c.section} ${c.text}`)).join(" ");
+    const hasTopicInPicked = topic ? topic.must.some((m) => pickedTextBlob.includes(m)) : true;
+
+    const shouldFallback = picked.length === 0 || topScore < MIN_TOP_SCORE || !hasTopicInPicked;
+
+    if (shouldFallback) {
       const docsIndex = await fetchDocsIndexFromSite();
       const capped = docsIndex.length > 7000 ? docsIndex.slice(0, 7000) : docsIndex;
-      picked = rerankAndPick(capped, 6);
+      const reranked = rerankAndPick(capped, 6);
+      if (reranked.length) picked = reranked;
     }
 
     const context = picked
@@ -438,24 +424,21 @@ export default async function handler(req, res) {
 You are Gigaverse AI, the official AI assistant for the Gigaverse community.
 
 Tone:
-- Warm, confident, and human (like a helpful pro player).
-- Short and clear. No robotic refusal loops.
+- Warm, confident, human, like a helpful pro player.
+- Clear and helpful. No robotic loops.
 - No sarcasm, no roleplay.
 
-Docs-first rules:
-1) If SOURCES contain the answer, answer from SOURCES and cite them.
-2) If SOURCES do not contain the answer, still be helpful with practical guidance, but say: “I don’t see this explicitly in the docs I have loaded.”
-3) Never invent Gigaverse-specific mechanics not supported by SOURCES.
+Rules:
+1) Use SOURCES as truth. If SOURCES contain the answer, answer using them and cite them.
+2) If SOURCES do not contain the answer, do NOT guess and do NOT deny the feature.
+   Say: “I don’t see this in the sources I’m looking at.” Then give safe, practical next steps + 1–2 targeted questions.
+3) Never mention internal tooling, training rules, chunks, retrieval, or implementation.
 
-Communication rules:
-- Start with a quick helpful summary.
-- Then give steps / tips.
-- If the question is vague, ask 1–2 targeted questions max.
-
-"What Should I Do Next?" mode:
-- If the user asks what to focus on / progress / what next:
-  Ask up to 3 short questions (level, focus area, event vs dungeon) ONLY if missing.
-  If user already provided these, give a plan.
+Behavior:
+- Start with a quick helpful answer.
+- Then give short steps/tips when useful.
+- For beginner questions like “how do I play” or “where do I start”, give a simple starter path.
+- For “what should I do next” requests, use the user's known profile if available and avoid re-asking known info.
 
 Output JSON only:
 {
@@ -467,7 +450,7 @@ Output JSON only:
 `.trim();
 
     const whatNextHint = whatNext
-      ? `\nNOTE: This is a "what next" request. User profile (if available): level="${session.profile.level}", focus="${session.profile.focus}", track="${session.profile.track}". Use it and avoid re-asking.\n`
+      ? `\nNOTE: "what next" request. User profile if available: level="${session.profile.level}", focus="${session.profile.focus}", track="${session.profile.track}". Use it and avoid re-asking.\n`
       : "";
 
     const userPrompt = `
@@ -480,8 +463,8 @@ ${whatNextHint}
 
 Rules:
 - If SOURCES contain the answer, mode="docs" and include up to 3 citations (title + section).
-- If SOURCES do NOT contain the answer, mode="helper", citations must be [].
-- Followups: include 0–2 questions only, unless it's "what next" mode (then up to 3).
+- If SOURCES do NOT contain the answer, mode="helper" and citations must be [].
+- Followups: include 0–2 questions only (or up to 3 for "what next").
 Return JSON only.
 `.trim();
 
@@ -492,8 +475,8 @@ Return JSON only.
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        temperature: 0.25,
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.2,
         max_tokens: 700,
         response_format: { type: "json_object" },
         messages: [
@@ -533,7 +516,6 @@ Return JSON only.
     let citations = Array.isArray(parsed?.citations) ? parsed.citations : [];
     if (mode === "helper") citations = [];
 
-    // dedupe citations
     const seen = new Set();
     const unique = [];
     for (const c of citations) {
@@ -546,7 +528,6 @@ Return JSON only.
       unique.push({ title: t, section: s });
     }
 
-    // Update session last topic (tiny personalization hook)
     session.lastTopic = whatNext ? "what-next" : q.slice(0, 80);
 
     return res.status(200).json({
