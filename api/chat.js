@@ -1,11 +1,9 @@
 // /api/chat.js — Gigaverse AI (Groq 70B)
-// Docs-first + Conversational + "What Next" mode + Session cap + Better guided followups
-// Expects POST { question: string, chunks?: [{title, section, text, url?}], sessionId?: string }
-// Returns JSON: { mode, answer, followups, citations }
+// Docs-first + Conversational + What-Next + Session memory + Context follow-up resolver
 
 const rateLimitMap = new Map();
 
-// -------------------- Rate Limit: 6 per rolling 60 seconds per IP --------------------
+// -------------------- Rate Limit --------------------
 function rateLimit(ip, limit = 6, windowMs = 60_000) {
   const now = Date.now();
   if (!rateLimitMap.has(ip)) rateLimitMap.set(ip, []);
@@ -32,10 +30,10 @@ function cleanupRateLimitMap(maxIps = 5000) {
   for (let i = 0; i < toDelete; i++) rateLimitMap.delete(entries[i][0]);
 }
 
-// -------------------- Session memory + cap (best-effort in-memory) --------------------
+// -------------------- Session memory + cap --------------------
 const sessionStore = new Map();
 const MAX_SESSIONS = 2000;
-const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12h
+const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
 function parseCookies(cookieHeader) {
   const out = {};
@@ -113,6 +111,10 @@ function getSession(sid) {
   const data = {
     profile: { level: "", focus: "", track: "" },
     lastTopic: "",
+    lastSuggestedArea: "",
+    lastAssistantAnswer: "",
+    lastUserQuestion: "",
+    lastMode: "",
   };
 
   sessionStore.set(sid, { data, updatedAt: now });
@@ -134,9 +136,57 @@ function clampText(t, max) {
   return s.length > max ? s.slice(0, max) : s;
 }
 
+// -------------------- Intent detection --------------------
+function isContextFollowup(q) {
+  const t = normalize(q);
+
+  const exact = new Set([
+    "yes",
+    "yeah",
+    "yep",
+    "ok",
+    "okay",
+    "sure",
+    "go on",
+    "continue",
+    "tell me about it",
+    "tell me more",
+    "explain that",
+    "explain it",
+    "what about that",
+    "how",
+    "why",
+    "how so",
+    "what next",
+    "then what",
+    "and then",
+    "more",
+  ]);
+
+  if (exact.has(t)) return true;
+
+  const patterns = [
+    "tell me about",
+    "tell me more",
+    "go deeper",
+    "continue that",
+    "explain more",
+    "how does that work",
+    "what do you mean",
+    "what about it",
+    "what about that",
+  ];
+
+  return patterns.some((p) => t.includes(p));
+}
+
 function isSmallTalk(q) {
   const t = normalize(q);
   if (!t) return true;
+
+  // IMPORTANT:
+  // do NOT classify follow-up continuations as generic small talk
+  if (isContextFollowup(t)) return false;
 
   const small = new Set([
     "hi",
@@ -157,15 +207,31 @@ function isSmallTalk(q) {
     "help",
     "thanks",
     "thank you",
-    "ok",
-    "okay",
     "nice",
     "cool",
   ]);
 
   if (small.has(t)) return true;
 
-  const gameHints = ["gigaverse", "dungeon", "craft", "fishing", "egg", "giggling", "trade", "market", "boss", "drop", "gear"];
+  const gameHints = [
+    "gigaverse",
+    "dungeon",
+    "combat",
+    "battle",
+    "craft",
+    "fishing",
+    "egg",
+    "giggling",
+    "trade",
+    "market",
+    "boss",
+    "drop",
+    "gear",
+    "play",
+    "progress",
+    "start",
+  ];
+
   const hasGameHint = gameHints.some((k) => t.includes(k));
   if (t.length <= 18 && !hasGameHint) return true;
 
@@ -205,26 +271,42 @@ function tryExtractProfileAnswer(raw) {
   let focus = "";
   if (t.includes("fish")) focus = "Fishing";
   else if (t.includes("craft")) focus = "Crafting";
-  else if (t.includes("egg") || t.includes("giggling")) focus = "Eggs/Gigglings";
-  else if (t.includes("dungeon") || t.includes("boss") || t.includes("combat")) focus = "Dungeons";
+  else if (t.includes("egg") || t.includes("giggling") || t.includes("hatch")) focus = "Eggs/Gigglings";
+  else if (t.includes("dungeon") || t.includes("boss") || t.includes("combat") || t.includes("battle")) focus = "Dungeons";
   else if (t.includes("trade") || t.includes("market")) focus = "Trading";
 
   let track = "";
   if (t.includes("event")) track = "Event-focused";
-  if (t.includes("dungeon") && (t.includes("focused") || t.includes("focus"))) track = "Dungeon-focused";
+  if ((t.includes("dungeon") || t.includes("combat")) && (t.includes("focused") || t.includes("focus"))) {
+    track = "Dungeon-focused";
+  }
 
   return { level, focus, track };
+}
+
+// -------------------- Topic helpers --------------------
+function topicLabelFromText(text) {
+  const t = normalize(text);
+
+  if (t.includes("fishing") || t.includes("fish")) return "fishing";
+  if (t.includes("craft") || t.includes("alchemy") || t.includes("workbench") || t.includes("potion")) return "crafting";
+  if (t.includes("egg") || t.includes("giggling") || t.includes("hatch")) return "eggs/gigglings";
+  if (t.includes("dungeon") || t.includes("combat") || t.includes("battle") || t.includes("boss") || t.includes("dungetron")) return "combat/dungeons";
+  if (t.includes("trade") || t.includes("market") || t.includes("gigamarket")) return "trading";
+  if (t.includes("rom")) return "roms";
+  if (t.includes("conquest")) return "conquest";
+  return "";
 }
 
 function requiredTopicFromQuestion(qRaw) {
   const t = normalize(qRaw);
 
   const topics = [
-    { key: "fishing", must: ["fishing"] },
-    { key: "crafting", must: ["craft", "crafting", "alchemy", "potion"] },
+    { key: "fishing", must: ["fishing", "fish"] },
+    { key: "crafting", must: ["craft", "crafting", "alchemy", "potion", "workbench"] },
     { key: "eggs", must: ["egg", "eggs", "giggling", "gigglings", "hatch", "hatching"] },
-    { key: "dungeons", must: ["dungeon", "boss", "underhaul", "dungetron", "combat"] },
-    { key: "trading", must: ["trade", "market", "gigamarket", "order book"] },
+    { key: "dungeons", must: ["dungeon", "combat", "battle", "boss", "underhaul", "dungetron"] },
+    { key: "trading", must: ["trade", "trading", "market", "gigamarket", "order book"] },
   ];
 
   for (const topic of topics) {
@@ -233,7 +315,61 @@ function requiredTopicFromQuestion(qRaw) {
   return null;
 }
 
-// Guided helper followups so replies feel sticky
+// Resolve vague follow-up to the last meaningful topic
+function resolveFollowupQuestion(qRaw, session) {
+  const t = normalize(qRaw);
+  if (!isContextFollowup(t)) return qRaw;
+
+  const topic =
+    session.lastSuggestedArea ||
+    session.lastTopic ||
+    topicLabelFromText(session.lastAssistantAnswer) ||
+    topicLabelFromText(session.lastUserQuestion) ||
+    session.profile.focus ||
+    "";
+
+  if (!topic) return qRaw;
+
+  if (t === "yes" || t === "yeah" || t === "yep" || t === "sure" || t === "ok" || t === "okay") {
+    return `Continue helping me with ${topic} in Gigaverse.`;
+  }
+
+  if (t.includes("tell me about") || t === "tell me about it") {
+    return `Tell me more about ${topic} in Gigaverse.`;
+  }
+
+  if (t.includes("tell me more") || t === "more") {
+    return `Tell me more about ${topic} in Gigaverse.`;
+  }
+
+  if (t.includes("explain")) {
+    return `Explain ${topic} in Gigaverse in more detail.`;
+  }
+
+  if (t === "how" || t.includes("how does that work") || t === "how so") {
+    return `How does ${topic} work in Gigaverse?`;
+  }
+
+  if (t === "why") {
+    return `Why is ${topic} important in Gigaverse?`;
+  }
+
+  if (t.includes("what about that")) {
+    return `What should I know about ${topic} in Gigaverse?`;
+  }
+
+  if (t === "go on" || t === "continue" || t.includes("go deeper")) {
+    return `Go deeper on ${topic} in Gigaverse.`;
+  }
+
+  if (t === "what next" || t === "then what" || t === "and then") {
+    return `What should I do next after ${topic} in Gigaverse?`;
+  }
+
+  return qRaw;
+}
+
+// -------------------- Guided followups --------------------
 function buildGuidedFollowups(question, answer, mode = "helper") {
   const t = normalize(`${question} ${answer}`);
 
@@ -272,17 +408,17 @@ function buildGuidedFollowups(question, answer, mode = "helper") {
     ];
   }
 
-  if (t.includes("dungeon") || t.includes("combat") || t.includes("boss")) {
+  if (t.includes("dungeon") || t.includes("combat") || t.includes("battle") || t.includes("boss")) {
     return [
-      "Do you want the basics of combat, gear progression, or dungeon rewards?",
-      "Do you want help getting stronger for dungeons?"
+      "Do you want the combat basics, how dungeon runs work, or how to get stronger?",
+      "Do you want help with gear progression or combat skill upgrades?"
     ];
   }
 
   if (mode === "docs") {
     return [
-      "Do you want to go deeper into this topic or switch to another system like fishing, crafting, or trading?",
-      "Want a quick beginner tip for what to do next?"
+      "Do you want to go deeper into this topic or switch to fishing, crafting, or trading?",
+      "Do you want the beginner version or the optimized version?"
     ];
   }
 
@@ -330,52 +466,70 @@ export default async function handler(req, res) {
     const CHUNKS_MAX = 12;
     const CHUNK_TEXT_MAX = 2400;
 
-    const qRaw = question.slice(0, QUESTION_MAX);
+    const originalQuestion = question.slice(0, QUESTION_MAX);
+    const resolvedQuestion = resolveFollowupQuestion(originalQuestion, session);
+    const qRaw = resolvedQuestion;
     const q = normalize(qRaw);
     const qWords = q.split(" ").filter((w) => w.length >= 3);
 
-    const extracted = tryExtractProfileAnswer(qRaw);
-    if (extracted.level && !session.profile.level) session.profile.level = extracted.level;
-    if (extracted.focus && !session.profile.focus) session.profile.focus = extracted.focus;
-    if (extracted.track && !session.profile.track) session.profile.track = extracted.track;
+    // save original user text too
+    session.lastUserQuestion = originalQuestion;
 
-    if (isSmallTalk(qRaw) && !isWhatNext(qRaw)) {
+    const extracted = tryExtractProfileAnswer(originalQuestion);
+    if (extracted.level) session.profile.level = extracted.level;
+    if (extracted.focus) session.profile.focus = extracted.focus;
+    if (extracted.track) session.profile.track = extracted.track;
+
+    // ---- Small talk ----
+    if (isSmallTalk(originalQuestion) && !isWhatNext(originalQuestion) && !isContextFollowup(originalQuestion)) {
       let answer;
 
-      if (/who are you|what can you do/.test(q)) {
+      if (/who are you|what can you do/.test(normalize(originalQuestion))) {
         answer = `Hey 👋 I’m **Gigaverse AI** — your in-game knowledge assistant.\n\nI can help with **dungeons, fishing, crafting, eggs/gigglings, trading, drops, builds,** and **progression**.`;
-      } else if (/how are you/.test(q)) {
+      } else if (/how are you/.test(normalize(originalQuestion))) {
         answer = `Doing great 😄 Ready to help you in Gigaverse.`;
-      } else if (/thanks|thank you|nice|cool/.test(q)) {
+      } else if (/thanks|thank you|nice|cool/.test(normalize(originalQuestion))) {
         answer = `You’re good 👌`;
       } else {
         answer = `Hey 👋 What’s up?\n\nTell me what you’re trying to do in Gigaverse and I’ll point you in the right direction.`;
       }
 
+      session.lastAssistantAnswer = answer;
+      session.lastMode = "helper";
+
       return res.status(200).json({
         mode: "helper",
         answer,
-        followups: buildGuidedFollowups(qRaw, answer, "helper"),
+        followups: buildGuidedFollowups(originalQuestion, answer, "helper"),
         citations: [],
       });
     }
 
-    const whatNext = isWhatNext(qRaw);
+    // ---- What-next mode ----
+    const whatNext = isWhatNext(originalQuestion) || isWhatNext(qRaw);
     if (whatNext) {
       const missing = [];
       if (!session.profile.level) missing.push("What level are you?");
       if (!session.profile.focus) missing.push("Which system are you focusing on (Fishing / Crafting / Eggs / Dungeons / Trading)?");
       if (!session.profile.track) missing.push("Are you more event-focused or dungeon-focused right now?");
+
       if (missing.length) {
+        const answer = `Got you 🤝 I can give you a clean “what next” plan — quick check:`;
+        session.lastAssistantAnswer = answer;
+        session.lastTopic = "progression";
+        session.lastSuggestedArea = "progression";
+        session.lastMode = "helper";
+
         return res.status(200).json({
           mode: "helper",
-          answer: `Got you 🤝 I can give you a clean “what next” plan — quick check:`,
+          answer,
           followups: missing.slice(0, 3),
           citations: [],
         });
       }
     }
 
+    // ---- Retrieval ----
     const intentWords = ["how", "where", "what", "drop", "drops", "craft", "earn", "get", "use", "fight", "best", "play", "start"];
 
     function scoreChunk(chunk) {
@@ -499,15 +653,13 @@ Behavior:
 - Then give short steps/tips when useful.
 - For beginner questions like “how do I play” or “where do I start”, give a simple starter path.
 - For “what should I do next” requests, use the user's known profile if available and avoid re-asking known info.
+- If the user is clearly following up on a previous topic, continue that topic naturally.
 
 VERY IMPORTANT FOLLOWUP RULE:
 - Do not end with bland generic lines like:
   “Anything else?”, “Let me know if you need more help”, “What else would you like to know?”
 - Instead, guide the user deeper with specific options.
-- Followups should feel like smart next choices, for example:
-  - “Do you want to start with dungeons, fishing, crafting, eggs/gigglings, or trading?”
-  - “Do you want the basic mechanic, the best progression path, or money-making tips?”
-  - “Do you want the beginner version or the optimized version?”
+- Followups should feel like smart next choices.
 - Followups must be short, natural, and clickable-style.
 
 Output JSON only:
@@ -519,17 +671,22 @@ Output JSON only:
 }
 `.trim();
 
-    const whatNextHint = whatNext
-      ? `\nNOTE: "what next" request. User profile if available: level="${session.profile.level}", focus="${session.profile.focus}", track="${session.profile.track}". Use it and avoid re-asking.\n`
-      : "";
+    const profileHint = `User profile if known: level="${session.profile.level}", focus="${session.profile.focus}", track="${session.profile.track}"`;
+    const memoryHint = `Last topic="${session.lastTopic}", last suggested area="${session.lastSuggestedArea}", last assistant answer="${clampText(session.lastAssistantAnswer, 260)}"`;
 
     const userPrompt = `
 SOURCES:
 ${context || "(no sources matched)"}
 
-USER QUESTION:
+USER CONTEXT:
+${profileHint}
+${memoryHint}
+
+ORIGINAL USER MESSAGE:
+${originalQuestion}
+
+RESOLVED USER INTENT:
 ${qRaw}
-${whatNextHint}
 
 Rules:
 - If SOURCES contain the answer, mode="docs" and include up to 3 citations (title + section).
@@ -603,7 +760,16 @@ Return JSON only.
       unique.push({ title: t, section: s });
     }
 
-    session.lastTopic = whatNext ? "what-next" : q.slice(0, 80);
+    // update session memory after response
+    session.lastAssistantAnswer = answer;
+    session.lastMode = mode;
+
+    const topicFromAnswer = topicLabelFromText(answer);
+    const topicFromQuestion = topicLabelFromText(qRaw);
+    const topicFromFollowups = topicLabelFromText(followups.join(" "));
+
+    session.lastTopic = topicFromAnswer || topicFromQuestion || session.lastTopic || "";
+    session.lastSuggestedArea = topicFromFollowups || topicFromAnswer || topicFromQuestion || session.lastSuggestedArea || "";
 
     return res.status(200).json({
       mode,
